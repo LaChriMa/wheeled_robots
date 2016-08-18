@@ -45,7 +45,7 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
   //motors[MIdx("left motor")] =  amplitude*sin(stepSize)*sin(stepSize);
   //motors[MIdx("right motor")] = amplitude*sin(stepSize)*sin(stepSize);
   /** von 0 auf 50 */
-  if(stepSize<10)
+  if(time<10)
   {
     motors[MIdx("left motor")] =  0;
   	motors[MIdx("right motor")] = 0;
