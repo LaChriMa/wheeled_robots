@@ -27,51 +27,48 @@
 using namespace std;
 using namespace matrix;
 
-BasicController::BasicController(const std::string& name)
-  : AbstractController(name, "1.0") {
+BasicController::BasicController(const std::string& name, const lpzrobots::OdeConfig& odeconfig)
+  : AbstractController(name, "1.0"), odeconfig(odeconfig) {
   initialised=false;
   // add threshold parameter to configurable parameters, setable on console
-  addParameterDef("threshold", &threshold, 0.2, 0, 1, "threshold for IR-sensor");
+  //addParameterDef("threshold", &threshold, 0.2, 0, 1, "threshold for IR-sensor");
+  stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
 }
 
 
 
 void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
                                      motor* motors, int number_motors) {
-  // Very simple controller, if IR sensors are higher than threshold then
-  // the robot will turn oposite direction, or backward when to close
-  // Sensors indices and motor indices can be accessed by the SIdx and MIdx functions
-  // provided by the controller base class
-  if (sensors[SIdx("IR front left")] > 2*threshold ||
-      sensors[SIdx("IR front right")] > 2*threshold) { // move backward
-    motors[MIdx("left motor")] = -1.;
-    motors[MIdx("right motor")] = -1.;
-  }else if (sensors[SIdx("IR left")] > threshold ||
-            sensors[SIdx("IR left front")] > threshold ||
-            sensors[SIdx("IR front left")] > threshold) { // turn right
-    motors[MIdx("left motor")] = .1;
-    motors[MIdx("right motor")] = 1.;
-  }
-  else if (sensors[SIdx("IR right")] > threshold ||
-           sensors[SIdx("IR right front")] > threshold ||
-           sensors[SIdx("IR front right")] > threshold) {
-    motors[MIdx("left motor")] = 1.;
-    motors[MIdx("right motor")] = .1;
-  }
-  else { // Move forward
-    motors[MIdx("left motor")] = 1.;
-    motors[MIdx("right motor")] = 1.;
-  }
+  /** sinus*sinus */
+  double amplitude = 100;
+  motors[MIdx("left motor")] =  amplitude*sin(stepSize)*sin(stepSize);
+  motors[MIdx("right motor")] = amplitude*sin(stepSize)*sin(stepSize);
+  /** von 0 auf 50 */
+  //if(stepSize<10)
+  //{
+  //  motors[MIdx("left motor")] =  0;
+  //	motors[MIdx("right motor")] = 0;
+  //}
+  //else{
+  //  motors[MIdx("left motor")] =  50;
+  //  motors[MIdx("right motor")] = 50;
+  //}
+  /** linear acceleration */
+  motors[MIdx("left motor")] =  stepSize;
+  motors[MIdx("right motor")] = stepSize;
+ 
+  stepSize += +0.01;
 }
 
 void BasicController::step(const sensor* sensors, int sensornumber,
                            motor* motors, int motornumber) {
+  stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
   stepNoLearning(sensors,sensornumber, motors, motornumber);
 }
 
 
 void BasicController::init(int sensornumber, int motornumber, RandGen* randGen) {
-  assert(motornumber >=2 && sensornumber >=8);
+  //assert(motornumber >=2 && sensornumber >=8);
   // Set the number of sensors and motors
   nSensors = sensornumber;
   nMotors  = motornumber;

@@ -71,7 +71,7 @@ class ThisSim : public Simulation
    	  robot->place(Pos(0, 0, 0));
 
    	  // Instantiating the controller
-   	  auto controller = new BasicController("Basic Controller");
+   	  auto controller = new BasicController("Basic Controller", global.odeConfig);
    	  // Create the wiring with color noise
    	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
    	  // Create Agent

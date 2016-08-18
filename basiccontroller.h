@@ -26,10 +26,13 @@
 
 #include <selforg/abstractcontroller.h>
 
+#include <ode_robots/odeconfig.h>
+
+
 class BasicController : public AbstractController{
   public:
 
-    BasicController(const std::string& name);
+    BasicController(const std::string& name, const lpzrobots::OdeConfig& odeconfig);
 
     /** initialisation of the controller with the given sensor/ motornumber
       Must be called before use. The random generator is optional.
@@ -70,10 +73,14 @@ class BasicController : public AbstractController{
     virtual bool restore(FILE* f) override;
 
   protected:
-  double nSensors;
-  double nMotors;
-  bool initialised;
-  double threshold;
+    double nSensors;
+    double nMotors;
+    bool initialised;
+    double threshold;
+  
+  private:
+	const lpzrobots::OdeConfig& odeconfig;
+    double stepSize;
 
 };
 
