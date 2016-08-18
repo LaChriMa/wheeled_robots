@@ -50,22 +50,25 @@ class ThisSim : public Simulation
     {
       // Initial position and orientation of the camera (use 'p' in graphical window to find out)
       setCameraHomePos(Pos(-14,14, 10),  Pos(-135, -24, 0));
+	  setCameraMode( Follow );
       // Some simulation parameters can be set here
       global.odeConfig.setParam("controlinterval", 1);
       global.odeConfig.setParam("gravity", -9.8);
+	  global.odeConfig.setParam("noise", 0);
 
 	  // Get the default configuration of the robot
    	  DifferentialConf conf = Differential::getDefaultConf();
-   	  // Values can be modified locally
    	  conf.wheelMass = .5;
+	  conf.wheelMotorPower = 1;
+	  conf.wheelMotorMaxSpeed = 1;
    	  // Instantiating the robot
    	  auto robot = new Differential(odeHandle, osgHandle, conf, "Differential robot");
    	  // add a speed sensor to the robot (attached to the "main primitive" (-1)
    	  // (specifiy index if needed)
    	  robot->addSensor(std::make_shared<SpeedSensor>(1), Attachment(-1));
    	  // Placing the robot in the scene
-   	  robot->place( osg::Matrix::rotate(1,1,1,1)*osg::Matrix::translate(1,2,1) );
-   	  //robot->place(Pos(1, .0, .2));
+   	  //robot->place( osg::Matrix::rotate(1,1,1,1)*osg::Matrix::translate(1,2,1) );
+   	  robot->place(Pos(0, 0, 0));
 
    	  // Instantiating the controller
    	  auto controller = new BasicController("Basic Controller");
