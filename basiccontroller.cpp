@@ -33,6 +33,7 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
   // add threshold parameter to configurable parameters, setable on console
   //addParameterDef("threshold", &threshold, 0.2, 0, 1, "threshold for IR-sensor");
   stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
+  time = 0;
 }
 
 
@@ -40,24 +41,24 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
 void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
                                      motor* motors, int number_motors) {
   /** sinus*sinus */
-  double amplitude = 100;
-  motors[MIdx("left motor")] =  amplitude*sin(stepSize)*sin(stepSize);
-  motors[MIdx("right motor")] = amplitude*sin(stepSize)*sin(stepSize);
+  //double amplitude = 100;
+  //motors[MIdx("left motor")] =  amplitude*sin(stepSize)*sin(stepSize);
+  //motors[MIdx("right motor")] = amplitude*sin(stepSize)*sin(stepSize);
   /** von 0 auf 50 */
-  //if(stepSize<10)
-  //{
-  //  motors[MIdx("left motor")] =  0;
-  //	motors[MIdx("right motor")] = 0;
-  //}
-  //else{
-  //  motors[MIdx("left motor")] =  50;
-  //  motors[MIdx("right motor")] = 50;
-  //}
+  if(stepSize<10)
+  {
+    motors[MIdx("left motor")] =  0;
+  	motors[MIdx("right motor")] = 0;
+  }
+  else{
+    motors[MIdx("left motor")] =  50;
+    motors[MIdx("right motor")] = 50;
+  }
   /** linear acceleration */
-  motors[MIdx("left motor")] =  stepSize;
-  motors[MIdx("right motor")] = stepSize;
+  //motors[MIdx("left motor")] =  stepSize;
+  //motors[MIdx("right motor")] = stepSize;
  
-  stepSize += +0.01;
+  time += stepSize;
 }
 
 void BasicController::step(const sensor* sensors, int sensornumber,

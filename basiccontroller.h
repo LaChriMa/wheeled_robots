@@ -81,6 +81,7 @@ class BasicController : public AbstractController{
   private:
 	const lpzrobots::OdeConfig& odeconfig;
     double stepSize;
+	double time;
 
 };
 
