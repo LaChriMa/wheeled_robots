@@ -39,47 +39,33 @@ namespace lpzrobots{
 
 
   void Differential::placeIntern(const Matrix& pose){
-    // Configuration check: wheels have to be bigger than the body
     assert(2. * conf.wheelRadius > conf.bodyHeight);
-    // Moving robot upward such that the wheel are not stuck on the ground
+
+    /** Moving robot upward such that the wheel are not stuck on the ground */
     Matrix initialPose;
-   // initialPose = Matrix::translate(Vec3(0, 0, conf.wheelRadius) * pose);
+    // initialPose = Matrix::translate(Vec3(0, 0, conf.wheelRadius) * pose);
 	initialPose = pose * Matrix::translate(Vec3(0, 0, 2*conf.wheelRadius) );
 	//initialPose = Matrix::rotate(M_PI/4,0,0,1) * Matrix::translate(Vec3(0, 0, 2*conf.wheelRadius) );
-    // Creating the robot
+
     create(initialPose);
   }
 
   void Differential::create(const Matrix& pose) {
     /* Creating body */
-    // Cylinder geometry primitive as body
     auto body = new Cylinder(conf.bodyRadius, conf.bodyHeight);
-    // Setting texture from Image library
-    body->setTexture("Images/purple_velour.jpg");
-    // Initializing the primitive
-    body->init(odeHandle, conf.bodyMass, osgHandle);
-    // Setting the pose of the primitive
+    body->init(odeHandle, conf.bodyMass, osgHandle.changeColor(Color(1,1,0)));
     body->setPose(pose);
-    // Adding the primitive to the list of objects
     objects.push_back(body);
 
     /* Creating the left wheel */
     auto lWheel = new Cylinder(conf.wheelRadius, conf.wheelHeight);
-    // Setting texture from Images library
     lWheel->setTexture("Images/chess.rgb");
     lWheel->init(odeHandle, conf.wheelMass, osgHandle);
-    // The cylinder is rotated 90º on the Y axis
-    // then translated outside the radius of the body plus half of
-    // its own height
-    // -- All transformations have to be relative to the position so
-    // the robot can be initialised in any position --
     Matrix lWheelPose =
-      Matrix::rotate(M_PI / 2.0, 0, 1, 0) *
+      Matrix::rotate(M_PI/2., 0, 1, 0) *
       Matrix::translate(conf.bodyRadius + conf.wheelHeight / 2.0, .0, .0) *
       pose;
-    // Setting the pose of the wheel
     lWheel->setPose(lWheelPose);
-    // adding the wheel to the list of objects
     objects.push_back(lWheel);
     // Joining the wheel to the body by a hingejoint
     // the anchor comes from the wheel and the axis of rotation
@@ -87,17 +73,14 @@ namespace lpzrobots{
     auto bodyLeftWheelJoint = new HingeJoint(body, lWheel,
                                              lWheel->getPosition(),
                                              Axis(0, 0, 1) * lWheelPose);
-    // Initializing the joint
     bodyLeftWheelJoint->init(odeHandle, osgHandle);
-    // Adding the joint to the list of joints
     joints.push_back(bodyLeftWheelJoint);
 
     /* Creating the right wheel */
-    // Analog to left wheel but changing translation direction
     auto rWheel = new Cylinder(conf.wheelRadius, conf.wheelHeight);
     rWheel->setTexture("Images/chess.rgb");
     rWheel->init(odeHandle, conf.wheelMass, osgHandle);
-    Matrix rWheelPose = Matrix::rotate(M_PI / 2.0, 0, 1, 0) *
+    Matrix rWheelPose = Matrix::rotate(M_PI/2., 0, 1, 0) *
       Matrix::translate(-(conf.bodyRadius + conf.wheelHeight / 2.0), .0, .0) *
       pose;
     rWheel->setPose(rWheelPose);
@@ -126,88 +109,126 @@ namespace lpzrobots{
     addSensor(motor);
     addMotor(motor);
 
+	/* Support wheels */
+	double swRadius = conf.wheelRadius/4;
+
+    auto fsWheel = new Cylinder(swRadius, conf.wheelHeight);
+    fsWheel->setTexture("Images/chess.rgb");
+    fsWheel->init(odeHandle, conf.wheelMass, osgHandle);
+    Matrix fsWheelPose =
+      Matrix::rotate(M_PI/2., 0, 1, 0) *
+      Matrix::translate(0, conf.bodyRadius-swRadius, -conf.wheelRadius+swRadius) *
+      pose;
+    fsWheel->setPose(fsWheelPose);
+    objects.push_back(fsWheel);
+    auto bodyFrontWheelJoint = new HingeJoint(body, fsWheel,
+                                              fsWheel->getPosition(),
+                                              Axis(0, 0, 1) * fsWheelPose);
+    bodyFrontWheelJoint->init(odeHandle, osgHandle);
+    joints.push_back(bodyFrontWheelJoint);
+
+ 
+    auto bsWheel = new Cylinder(swRadius, conf.wheelHeight);
+    bsWheel->setTexture("Images/chess.rgb");
+    bsWheel->init(odeHandle, conf.wheelMass, osgHandle);
+    Matrix bsWheelPose =
+      Matrix::rotate(M_PI/2., 0, 1, 0) *
+      Matrix::translate(0, -( conf.bodyRadius-swRadius ), -conf.wheelRadius+swRadius) *
+      pose;
+    bsWheel->setPose(bsWheelPose);
+    objects.push_back(bsWheel);
+    auto bodyBackWheelJoint = new HingeJoint(body, bsWheel,
+                                              bsWheel->getPosition(),
+                                              Axis(0, 0, 1) * bsWheelPose);
+    bodyBackWheelJoint->init(odeHandle, osgHandle);
+    joints.push_back(bodyBackWheelJoint);
+
+
+ 
+
+
     /* Infra-red sensors */
-    auto irSensorBank = std::make_shared<RaySensorBank>();
-    // Initialising infra-red sensor bank
-    irSensorBank->setInitData(odeHandle, osgHandle, TRANSM(0,0,0));
-    irSensorBank->setBaseName("IR ");
-    irSensorBank->setNames({"left", "left front", "front left","front right",
-          "right front", "right","back left", "back right"});
+    //auto irSensorBank = std::make_shared<RaySensorBank>();
+    //// Initialising infra-red sensor bank
+    //irSensorBank->setInitData(odeHandle, osgHandle, TRANSM(0,0,0));
+    //irSensorBank->setBaseName("IR ");
+    //irSensorBank->setNames({"left", "left front", "front left","front right",
+    //      "right front", "right","back left", "back right"});
 
-    // Registering the sensor in the bank (set of ir sensors), fixed to body
-    // For the first sensor it is rotated to point forward
-    // translation from center of body to outside and middle of height
-    // pose is relative to the parent body - no need to multiply by 'pose'.
-    // Maximum range of sensor value.
-    // drawAll will display a line and the sensor body in the rendered scene.
-    irSensorBank->registerSensor(new IRSensor(), body,
-                                 Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
-                                 Matrix::rotate( M_PI / 2.0, 0, 0, 1) *
-                                 Matrix::translate(-conf.bodyRadius * sin(M_PI * .4),
-                                                   conf.bodyRadius * cos(M_PI * .4),
-                                                   conf.bodyHeight / 2.0),
-                                conf.irRange,
-                                RaySensor::drawAll);
+    //// Registering the sensor in the bank (set of ir sensors), fixed to body
+    //// For the first sensor it is rotated to point forward
+    //// translation from center of body to outside and middle of height
+    //// pose is relative to the parent body - no need to multiply by 'pose'.
+    //// Maximum range of sensor value.
+    //// drawAll will display a line and the sensor body in the rendered scene.
+    //irSensorBank->registerSensor(new IRSensor(), body,
+    //                             Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
+    //                             Matrix::rotate( M_PI / 2.0, 0, 0, 1) *
+    //                             Matrix::translate(-conf.bodyRadius * sin(M_PI * .4),
+    //                                               conf.bodyRadius * cos(M_PI * .4),
+    //                                               conf.bodyHeight / 2.0),
+    //                            conf.irRange,
+    //                            RaySensor::drawAll);
 
-    irSensorBank->registerSensor(new IRSensor(), body,
-                                Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
-                                Matrix::rotate( M_PI / 3.5, 0, 0, 1) *
-                                Matrix::translate(-conf.bodyRadius * sin(M_PI * .25),
-                                                  conf.bodyRadius * cos(M_PI * .25),
-                                                  conf.bodyHeight / 2.0),
-                                conf.irRange,
-                                RaySensor::drawAll);
+    //irSensorBank->registerSensor(new IRSensor(), body,
+    //                            Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
+    //                            Matrix::rotate( M_PI / 3.5, 0, 0, 1) *
+    //                            Matrix::translate(-conf.bodyRadius * sin(M_PI * .25),
+    //                                              conf.bodyRadius * cos(M_PI * .25),
+    //                                              conf.bodyHeight / 2.0),
+    //                            conf.irRange,
+    //                            RaySensor::drawAll);
 
-    irSensorBank->registerSensor(new IRSensor(), body,
-                                Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
-                                Matrix::translate(-conf.bodyRadius * sin(M_PI * .05),
-                                                  conf.bodyRadius * cos(M_PI * .05),
-                                                  conf.bodyHeight / 2.0),
-                                conf.irRange,
-                                RaySensor::drawAll);
+    //irSensorBank->registerSensor(new IRSensor(), body,
+    //                            Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
+    //                            Matrix::translate(-conf.bodyRadius * sin(M_PI * .05),
+    //                                              conf.bodyRadius * cos(M_PI * .05),
+    //                                              conf.bodyHeight / 2.0),
+    //                            conf.irRange,
+    //                            RaySensor::drawAll);
 
-    irSensorBank->registerSensor(new IRSensor(), body,
-                                Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
-                                Matrix::translate(conf.bodyRadius * sin(M_PI * .05),
-                                                  conf.bodyRadius * cos(M_PI * .05),
-                                                  conf.bodyHeight / 2.0),
-                                conf.irRange,
-                                RaySensor::drawAll);
+    //irSensorBank->registerSensor(new IRSensor(), body,
+    //                            Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
+    //                            Matrix::translate(conf.bodyRadius * sin(M_PI * .05),
+    //                                              conf.bodyRadius * cos(M_PI * .05),
+    //                                              conf.bodyHeight / 2.0),
+    //                            conf.irRange,
+    //                            RaySensor::drawAll);
 
-    irSensorBank->registerSensor(new IRSensor(), body,
-                                Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
-                                Matrix::rotate(-M_PI / 3.5, 0, 0, 1) *
-                                Matrix::translate(conf.bodyRadius * sin(M_PI * .25),
-                                                  conf.bodyRadius * cos(M_PI * .25),
-                                                  conf.bodyHeight / 2.0),
-                                conf.irRange,
-                                RaySensor::drawAll);
+    //irSensorBank->registerSensor(new IRSensor(), body,
+    //                            Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
+    //                            Matrix::rotate(-M_PI / 3.5, 0, 0, 1) *
+    //                            Matrix::translate(conf.bodyRadius * sin(M_PI * .25),
+    //                                              conf.bodyRadius * cos(M_PI * .25),
+    //                                              conf.bodyHeight / 2.0),
+    //                            conf.irRange,
+    //                            RaySensor::drawAll);
 
-    irSensorBank->registerSensor(new IRSensor(), body,
-                                Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
-                                Matrix::rotate(-M_PI / 2.0, 0, 0, 1) *
-                                Matrix::translate(conf.bodyRadius * sin(M_PI * .4),
-                                                  conf.bodyRadius * cos(M_PI * .4),
-                                                  conf.bodyHeight / 2.0),
-                                conf.irRange,
-                                RaySensor::drawAll);
+    //irSensorBank->registerSensor(new IRSensor(), body,
+    //                            Matrix::rotate(-M_PI / 2.0, 1, 0, 0) *
+    //                            Matrix::rotate(-M_PI / 2.0, 0, 0, 1) *
+    //                            Matrix::translate(conf.bodyRadius * sin(M_PI * .4),
+    //                                              conf.bodyRadius * cos(M_PI * .4),
+    //                                              conf.bodyHeight / 2.0),
+    //                            conf.irRange,
+    //                            RaySensor::drawAll);
 
-    irSensorBank->registerSensor(new IRSensor(), body,
-                                Matrix::rotate(M_PI / 2.0, 1, 0, 0) *
-                                Matrix::translate(-conf.bodyRadius * sin(M_PI * .9),
-                                                  conf.bodyRadius * cos(M_PI * .9),
-                                                  conf.bodyHeight / 2.0),
-                                conf.irRange,
-                                RaySensor::drawAll);
+    //irSensorBank->registerSensor(new IRSensor(), body,
+    //                            Matrix::rotate(M_PI / 2.0, 1, 0, 0) *
+    //                            Matrix::translate(-conf.bodyRadius * sin(M_PI * .9),
+    //                                              conf.bodyRadius * cos(M_PI * .9),
+    //                                              conf.bodyHeight / 2.0),
+    //                            conf.irRange,
+    //                            RaySensor::drawAll);
 
-    irSensorBank->registerSensor(new IRSensor(), body,
-                                Matrix::rotate(M_PI / 2.0, 1, 0, 0) *
-                                Matrix::translate(conf.bodyRadius * sin(M_PI * .9),
-                                                  conf.bodyRadius * cos(M_PI * .9),
-                                                  conf.bodyHeight / 2.0),
-                                conf.irRange,
-                                RaySensor::drawAll);
-    addSensor(irSensorBank);
+    //irSensorBank->registerSensor(new IRSensor(), body,
+    //                            Matrix::rotate(M_PI / 2.0, 1, 0, 0) *
+    //                            Matrix::translate(conf.bodyRadius * sin(M_PI * .9),
+    //                                              conf.bodyRadius * cos(M_PI * .9),
+    //                                              conf.bodyHeight / 2.0),
+    //                            conf.irRange,
+    //                            RaySensor::drawAll);
+    //addSensor(irSensorBank);
 
   }
 }
