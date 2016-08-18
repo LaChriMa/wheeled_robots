@@ -1,3 +1,11 @@
 guilogger.cfg
 
 *.o
+
+start
+
+Makefile.depend
+
+motorTest/*
+
+.history
