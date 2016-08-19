@@ -33,6 +33,7 @@
 #include <ode_robots/playground.h>
 #include <ode_robots/passivebox.h>
 
+#include <selforg/agent.h>
 
 using namespace lpzrobots;
 
@@ -52,13 +53,15 @@ class ThisSim : public Simulation
       setCameraHomePos(Pos(-14,14, 10),  Pos(-135, -24, 0));
 	  setCameraMode( Follow );
       // Some simulation parameters can be set here
+      global.odeConfig.setParam("simstepsize", 0.01);
       global.odeConfig.setParam("controlinterval", 1);
-      global.odeConfig.setParam("gravity", -9.8);
+      global.odeConfig.setParam("gravity", 0);
 	  global.odeConfig.setParam("noise", 0);
 
 	  // Get the default configuration of the robot
    	  DifferentialConf conf = Differential::getDefaultConf();
    	  conf.wheelMass = .5;
+      conf.wheelRadius = .3;
 	  conf.wheelMotorPower = 1;
 	  conf.wheelMotorMaxSpeed = 1;
    	  // Instantiating the robot
@@ -68,19 +71,26 @@ class ThisSim : public Simulation
    	  robot->addSensor(std::make_shared<SpeedSensor>(1), Attachment(-1));
    	  // Placing the robot in the scene
    	  //robot->place( osg::Matrix::rotate(1,1,1,1)*osg::Matrix::translate(1,2,1) );
-   	  robot->place(Pos(0, 0, 0));
+   	  robot->place(Pos(0, 0, 10));
 
    	  // Instantiating the controller
    	  auto controller = new BasicController("Basic Controller", global.odeConfig);
    	  // Create the wiring with color noise
    	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
+
    	  // Create Agent
-   	  auto agent = new OdeAgent(global);
+   	  //auto agent = new OdeAgent(global);
+	  /** PlotOption will change the interval for how often will be written into the log-file to one */
+   	  auto agent = new OdeAgent( PlotOption(File) );
+
    	  // Agent initialisation
    	  agent->init(controller, robot, wiring);
    	  // Adding the agent to the agents list
    	  global.agents.push_back(agent);
    	  global.configs.push_back(agent);
+
+
+	  
 
       //// New playground
       //auto playground = new Playground(odeHandle, osgHandle,osg::Vec3(15., .2, 1.2), 1);
