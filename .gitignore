@@ -1,11 +1,12 @@
 guilogger.cfg
 
 *.o
+*.swp
 
 start
 
 Makefile.depend
 
-motorTest/*
+motorTest*/*
 
 .history
