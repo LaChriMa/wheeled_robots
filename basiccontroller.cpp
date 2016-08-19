@@ -33,6 +33,7 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
   // add threshold parameter to configurable parameters, setable on console
   //addParameterDef("threshold", &threshold, 0.2, 0, 1, "threshold for IR-sensor");
   stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
+  cout << " STEPSIZE OF CONTROLLER = " << stepSize << endl;
   time = 0;
 }
 
@@ -51,8 +52,8 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
   	motors[MIdx("right motor")] = 0;
   }
   else{
-    motors[MIdx("left motor")] =  50;
-    motors[MIdx("right motor")] = 50;
+    motors[MIdx("left motor")] =  4;
+    motors[MIdx("right motor")] = 4;
   }
   /** linear acceleration */
   //motors[MIdx("left motor")] =  stepSize;
@@ -63,7 +64,9 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
 
 void BasicController::step(const sensor* sensors, int sensornumber,
                            motor* motors, int motornumber) {
+  double old_stepSize = stepSize;
   stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
+  if( old_stepSize != stepSize) cout << " STEPSIZE OF CONTROLLER = " << stepSize << endl;
   stepNoLearning(sensors,sensornumber, motors, motornumber);
 }
 
