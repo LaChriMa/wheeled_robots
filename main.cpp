@@ -43,6 +43,10 @@ class ThisSim : public Simulation
     ThisSim() {
       // set Title of simulation
       setTitle("BASIC SIM by Simon");
+   	  //addPaletteFile("colors/UrbanExtraColors.gpl");
+   	  //addColorAliasFile("colors/UrbanColorSchema.txt");
+   	  //addColorAliasFile("colors.txt");
+   	  //setGroundTexture("Images/whiteground.jpg");
     }
     ~ThisSim() { }
 
@@ -55,7 +59,7 @@ class ThisSim : public Simulation
       // Some simulation parameters can be set here
       global.odeConfig.setParam("simstepsize", 0.01);
       global.odeConfig.setParam("controlinterval", 1);
-      global.odeConfig.setParam("gravity", 0);
+      global.odeConfig.setParam("gravity", -9.8);
 	  global.odeConfig.setParam("noise", 0);
 
 	  // Get the default configuration of the robot
@@ -65,13 +69,15 @@ class ThisSim : public Simulation
 	  conf.wheelMotorPower = 1;
 	  conf.wheelMotorMaxSpeed = 1;
    	  // Instantiating the robot
-   	  auto robot = new Differential(odeHandle, osgHandle, conf, "Differential robot");
+	  OdeHandle robHandle = odeHandle;
+	  //robHandle.substance.toRubber(5);
+   	  auto robot = new Differential(robHandle, osgHandle, conf, "Differential robot");
    	  // add a speed sensor to the robot (attached to the "main primitive" (-1)
    	  // (specifiy index if needed)
    	  robot->addSensor(std::make_shared<SpeedSensor>(1), Attachment(-1));
    	  // Placing the robot in the scene
    	  //robot->place( osg::Matrix::rotate(1,1,1,1)*osg::Matrix::translate(1,2,1) );
-   	  robot->place(Pos(0, 0, 10));
+   	  robot->place(Pos(0, 0, 0));
 
    	  // Instantiating the controller
    	  auto controller = new BasicController("Basic Controller", global.odeConfig);
