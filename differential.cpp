@@ -23,6 +23,9 @@
 
 #include "differential.h"
 
+#include <ode_robots/axisorientationsensor.h>
+#include <ode_robots/torquesensor.h>
+
 // Using namespaces
 using namespace osg;
 using namespace std;
@@ -50,6 +53,15 @@ namespace lpzrobots{
     create(initialPose);
   }
 
+  int Differential::getSensorsIntern( sensor* sensors, int sensornumber) {
+      int len=4;
+      sensors[2]= leftWheelJoint->getPosition1();
+      sensors[3]= rightWheelJoint->getPosition1();
+      return len;
+  }
+
+
+
   void Differential::create(const Matrix& pose) {
     /* Creating body */
     auto body = new Cylinder(conf.bodyRadius, conf.bodyHeight);
@@ -70,13 +82,13 @@ namespace lpzrobots{
     // Joining the wheel to the body by a hingejoint
     // the anchor comes from the wheel and the axis of rotation
     // is relative to the pose of the left wheel
-    auto bodyLeftWheelJoint = new HingeJoint(body, lWheel,
+    leftWheelJoint = new HingeJoint(body, lWheel,
                                              lWheel->getPosition(),
                                              Axis(0, 0, 1) * lWheelPose);
-    bodyLeftWheelJoint->init(odeHandle, osgHandle);
-    joints.push_back(bodyLeftWheelJoint);
+    leftWheelJoint->init(odeHandle, osgHandle);
+    joints.push_back(leftWheelJoint);
 
-    /* Creating the right wheel */
+    /** Creating the right wheel */
     auto rWheel = new Cylinder(conf.wheelRadius, conf.wheelHeight);
     rWheel->setTexture("Images/chess.rgb");
     rWheel->init(odeHandle, conf.wheelMass, osgHandle);
@@ -85,31 +97,31 @@ namespace lpzrobots{
       pose;
     rWheel->setPose(rWheelPose);
     objects.push_back(rWheel);
-    auto bodyRightWheelJoint = new HingeJoint(body, rWheel,
+    rightWheelJoint = new HingeJoint(body, rWheel,
                                               rWheel->getPosition(),
                                               Axis(0, 0, 1) * rWheelPose);
-    bodyRightWheelJoint->init(odeHandle, osgHandle);
-    joints.push_back(bodyRightWheelJoint);
+    rightWheelJoint->init(odeHandle, osgHandle);
+    joints.push_back(rightWheelJoint);
 
-    /* Motors */
+    /** Motors */
     // Left wheel motor, the OdeHandle, the joint and the maximun
     // power that motor will be used to achieve desired speed
-    auto motor = std::make_shared<AngularMotor1Axis>(odeHandle, bodyLeftWheelJoint,
+    auto motor = std::make_shared<AngularMotor1Axis>(odeHandle, leftWheelJoint,
                                                      conf.wheelMotorPower);
     motor->setBaseName("left motor");
     motor->setVelovityFactor(conf.wheelMotorMaxSpeed);
     addSensor(motor);
     addMotor(motor);
 
-    // Right wheel motor
-    motor = std::make_shared<AngularMotor1Axis>(odeHandle, bodyRightWheelJoint,
+    /** Right wheel motor */
+    motor = std::make_shared<AngularMotor1Axis>(odeHandle, rightWheelJoint,
                                                 conf.wheelMotorPower);
     motor->setBaseName("right motor");
     motor->setVelovityFactor(conf.wheelMotorMaxSpeed);
     addSensor(motor);
     addMotor(motor);
 
-	/* Support wheels */
+	/** Support wheels */
 	double swRadius = conf.wheelRadius/4;
 
     auto fsWheel = new Cylinder(swRadius, conf.wheelHeight);
@@ -127,7 +139,6 @@ namespace lpzrobots{
     bodyFrontWheelJoint->init(odeHandle, osgHandle);
     joints.push_back(bodyFrontWheelJoint);
 
- 
     auto bsWheel = new Cylinder(swRadius, conf.wheelHeight);
     bsWheel->setTexture("Images/chess.rgb");
     bsWheel->init(odeHandle, conf.wheelMass, osgHandle);
@@ -144,7 +155,23 @@ namespace lpzrobots{
     joints.push_back(bodyBackWheelJoint);
 
 
- 
+	//addSensor(std::make_shared<AxisOrientationSensor>(AxisOrientationSensor::Mode Axis));
+	//AxisOrientationSensor::Mode axmode = AxisOrientationSensor::Axis;
+    //AxisOrientationSensor* axsens = new AxisOrientationSensor(axmode);
+	//axsens->setBaseName("Orientation of left wheel");
+	//addSensor(std::shared_ptr<Sensor>(axsens));
+	//axsens->init(lWheel, leftWheelJoint);
+
+    //TorqueSensor* tsl = new TorqueSensor(1);
+    //tsl->setBaseName("left torque sensor");
+    //addSensor(std::shared_ptr<Sensor>(tsl), Attachment(-1,0));
+    //tsl->init(lWheel, leftWheelJoint);
+
+	//vector<Joint*> j;
+	//j = joints;
+	//cout << endl << "number of joint elements: " << j.size() << endl;
+	//cout << "joint pos: " << bodyBackWheelJoint->getPosition1() << endl << endl;
+	
 
 
     /* Infra-red sensors */

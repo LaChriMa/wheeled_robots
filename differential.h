@@ -99,6 +99,13 @@ namespace lpzrobots{
        */
       virtual void create(const osg::Matrix& pose);
 
+	  int getSensorNumberIntern(){ return 4; }; 
+	  int getSensorsIntern( sensor* sensors, int sensornumber ); 
+
+	private:
+	 HingeJoint* leftWheelJoint;
+	 HingeJoint* rightWheelJoint;
+
   };
 
 
