@@ -41,6 +41,7 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
 
 void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
                                      motor* motors, int number_motors) {
+  //motors[MIdx("artificial motor")] = 10;
   /** sinus*sinus */
   //double amplitude = 100;
   //motors[MIdx("left motor")] =  amplitude*sin(stepSize)*sin(stepSize);
@@ -48,12 +49,12 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
   /** von 0 auf 50 */
   if(time<10)
   {
-    motors[MIdx("left motor")] =  0;
-  	motors[MIdx("right motor")] = 0;
+    motors[0] =  0;
+  	motors[1] = 0;
   }
   else{
-    motors[MIdx("left motor")] =  4;
-    motors[MIdx("right motor")] = 4;
+    motors[0] =  4;
+    motors[1] = 4;
   }
   /** linear acceleration */
   //motors[MIdx("left motor")] =  stepSize;

@@ -55,52 +55,55 @@ namespace lpzrobots{
    */
   class Differential: public OdeRobot {
     public:
-      // Structure to hold the configuration of the robot
-      DifferentialConf conf;
+     // Structure to hold the configuration of the robot
+     DifferentialConf conf;
 
-      /**
-       * Contrustructor
-       */
-      Differential(const OdeHandle& odeHandle, const OsgHandle& osgHandle,
-                   const DifferentialConf &conf = getDefaultConf(),
-                   const std::string& name = "Differential");
+     /**
+      * Contrustructor
+      */
+     Differential(const OdeHandle& odeHandle, const OsgHandle& osgHandle,
+                  const DifferentialConf &conf = getDefaultConf(),
+                  const std::string& name = "Differential");
 
-      /**
-       * Default configuration of the robot
-       */
-      static DifferentialConf getDefaultConf(){
-        DifferentialConf conf;
-        conf.bodyRadius         = 1.;
-        conf.bodyHeight         = .5;
-        conf.bodyMass           = 1.;
-        conf.wheelRadius        = .3;
-        conf.wheelHeight        = .1;
-        conf.wheelMass          = 5.;
-        conf.wheelMotorPower    = 5.;
-        conf.wheelMotorMaxSpeed = 5.;
-        conf.irRange            = 2.;
-        return conf;
-      }
+     /**
+      * Default configuration of the robot
+      */
+     static DifferentialConf getDefaultConf(){
+       DifferentialConf conf;
+       conf.bodyRadius         = 1.;
+       conf.bodyHeight         = .5;
+       conf.bodyMass           = 1.;
+       conf.wheelRadius        = .3;
+       conf.wheelHeight        = .1;
+       conf.wheelMass          = 5.;
+       conf.wheelMotorPower    = 5.;
+       conf.wheelMotorMaxSpeed = 5.;
+       conf.irRange            = 2.;
+       return conf;
+     }
 
-      /**
-       * Destructor
-       */
-      virtual ~Differential();
+     /**
+      * Destructor
+      */
+     virtual ~Differential();
 
-      /**
-       * Place the robot in the desired pose
-       * @param pose desired 4x4 pose matrix
-       */
-      virtual void placeIntern(const osg::Matrix& pose) override;
+     /**
+      * Place the robot in the desired pose
+      * @param pose desired 4x4 pose matrix
+      */
+     virtual void placeIntern(const osg::Matrix& pose) override;
 
-      /**
-       * Create the robot in the desired pose
-       * @param pose desired 4x4 pose matrix
-       */
-      virtual void create(const osg::Matrix& pose);
+     /**
+      * Create the robot in the desired pose
+      * @param pose desired 4x4 pose matrix
+      */
+     virtual void create(const osg::Matrix& pose);
 
-	  int getSensorNumberIntern(){ return 4; }; 
-	  int getSensorsIntern( sensor* sensors, int sensornumber ); 
+	 int getSensorNumberIntern(){ return 4; }; 
+	 int getSensorsIntern( sensor* sensors, int sensornumber ); 
+
+	 virtual int getMotorNumberIntern(){ return 2; };
+	 virtual void setMotorsIntern( const double* motors, int motornumber );
 
 	private:
 	 HingeJoint* leftWheelJoint;

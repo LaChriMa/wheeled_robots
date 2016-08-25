@@ -43,23 +43,27 @@ namespace lpzrobots{
 
   void Differential::placeIntern(const Matrix& pose){
     assert(2. * conf.wheelRadius > conf.bodyHeight);
-
     /** Moving robot upward such that the wheel are not stuck on the ground */
     Matrix initialPose;
-    // initialPose = Matrix::translate(Vec3(0, 0, conf.wheelRadius) * pose);
 	initialPose = pose * Matrix::translate(Vec3(0, 0, 2*conf.wheelRadius) );
-	//initialPose = Matrix::rotate(M_PI/4,0,0,1) * Matrix::translate(Vec3(0, 0, 2*conf.wheelRadius) );
-
     create(initialPose);
   }
 
+
   int Differential::getSensorsIntern( sensor* sensors, int sensornumber) {
-      int len=4;
-      sensors[2]= leftWheelJoint->getPosition1();
-      sensors[3]= rightWheelJoint->getPosition1();
-      return len;
+	int len=4;
+	sensors[0]= leftWheelJoint->getPosition1();
+	sensors[1]= rightWheelJoint->getPosition1();
+	sensors[2]= leftWheelJoint->getPosition1Rate();
+	sensors[3]= rightWheelJoint->getPosition1Rate();
+	return len;
   }
 
+
+  void Differential::setMotorsIntern( const double* motors, int motornumber ) {
+	leftWheelJoint->addForce1( motors[0] );
+	rightWheelJoint->addForce1( motors[1] );
+  }
 
 
   void Differential::create(const Matrix& pose) {
@@ -68,6 +72,25 @@ namespace lpzrobots{
     body->init(odeHandle, conf.bodyMass, osgHandle.changeColor(Color(1,1,0)));
     body->setPose(pose);
     objects.push_back(body);
+
+	/** artificial motor */
+	//auto cWheel = new Cylinder(0.1, 0.01);
+    //cWheel->setTexture("Images/chess.rgb");
+    //cWheel->init(odeHandle, conf.wheelMass, osgHandle);
+    //Matrix cWheelPose = pose;
+    //cWheel->setPose(cWheelPose);
+    //objects.push_back(cWheel);
+    //auto centerWheelJoint = new HingeJoint(body, cWheel,
+    //                                          cWheel->getPosition(),
+    //                                          Axis(0, 0, 1) * cWheelPose);
+    //centerWheelJoint->init(odeHandle, osgHandle);
+    //joints.push_back(centerWheelJoint);
+    //auto m = std::make_shared<AngularMotor1Axis>(odeHandle, centerWheelJoint,
+    //                                                 conf.wheelMotorPower);
+    //m->setBaseName("artificial motor");
+    //m->setVelovityFactor(conf.wheelMotorMaxSpeed);
+    //addSensor(m);
+    //addMotor(m);
 
     /* Creating the left wheel */
     auto lWheel = new Cylinder(conf.wheelRadius, conf.wheelHeight);
@@ -79,12 +102,8 @@ namespace lpzrobots{
       pose;
     lWheel->setPose(lWheelPose);
     objects.push_back(lWheel);
-    // Joining the wheel to the body by a hingejoint
-    // the anchor comes from the wheel and the axis of rotation
-    // is relative to the pose of the left wheel
-    leftWheelJoint = new HingeJoint(body, lWheel,
-                                             lWheel->getPosition(),
-                                             Axis(0, 0, 1) * lWheelPose);
+    leftWheelJoint = new HingeJoint(body, lWheel, lWheel->getPosition(),
+                                    Axis(0, 0, 1) * lWheelPose);
     leftWheelJoint->init(odeHandle, osgHandle);
     joints.push_back(leftWheelJoint);
 
@@ -106,20 +125,20 @@ namespace lpzrobots{
     /** Motors */
     // Left wheel motor, the OdeHandle, the joint and the maximun
     // power that motor will be used to achieve desired speed
-    auto motor = std::make_shared<AngularMotor1Axis>(odeHandle, leftWheelJoint,
-                                                     conf.wheelMotorPower);
-    motor->setBaseName("left motor");
-    motor->setVelovityFactor(conf.wheelMotorMaxSpeed);
-    addSensor(motor);
-    addMotor(motor);
+    //auto motor = std::make_shared<AngularMotor1Axis>(odeHandle, leftWheelJoint,
+    //                                                 conf.wheelMotorPower);
+    //motor->setBaseName("left motor");
+    //motor->setVelovityFactor(conf.wheelMotorMaxSpeed);
+    //addSensor(motor);
+    //addMotor(motor);
 
     /** Right wheel motor */
-    motor = std::make_shared<AngularMotor1Axis>(odeHandle, rightWheelJoint,
-                                                conf.wheelMotorPower);
-    motor->setBaseName("right motor");
-    motor->setVelovityFactor(conf.wheelMotorMaxSpeed);
-    addSensor(motor);
-    addMotor(motor);
+    //motor = std::make_shared<AngularMotor1Axis>(odeHandle, rightWheelJoint,
+    //                                            conf.wheelMotorPower);
+    //motor->setBaseName("right motor");
+    //motor->setVelovityFactor(conf.wheelMotorMaxSpeed);
+    //addSensor(motor);
+    //addMotor(motor);
 
 	/** Support wheels */
 	double swRadius = conf.wheelRadius/4;
@@ -133,8 +152,7 @@ namespace lpzrobots{
       pose;
     fsWheel->setPose(fsWheelPose);
     objects.push_back(fsWheel);
-    auto bodyFrontWheelJoint = new HingeJoint(body, fsWheel,
-                                              fsWheel->getPosition(),
+    auto bodyFrontWheelJoint = new HingeJoint(body, fsWheel, fsWheel->getPosition(),
                                               Axis(0, 0, 1) * fsWheelPose);
     bodyFrontWheelJoint->init(odeHandle, osgHandle);
     joints.push_back(bodyFrontWheelJoint);
@@ -148,11 +166,12 @@ namespace lpzrobots{
       pose;
     bsWheel->setPose(bsWheelPose);
     objects.push_back(bsWheel);
-    auto bodyBackWheelJoint = new HingeJoint(body, bsWheel,
-                                              bsWheel->getPosition(),
+    auto bodyBackWheelJoint = new HingeJoint(body, bsWheel, bsWheel->getPosition(),
                                               Axis(0, 0, 1) * bsWheelPose);
     bodyBackWheelJoint->init(odeHandle, osgHandle);
     joints.push_back(bodyBackWheelJoint);
+
+
 
 
 	//addSensor(std::make_shared<AxisOrientationSensor>(AxisOrientationSensor::Mode Axis));
