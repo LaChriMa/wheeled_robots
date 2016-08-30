@@ -66,8 +66,8 @@ class ThisSim : public Simulation
    	  DifferentialConf conf = Differential::getDefaultConf();
    	  conf.wheelMass = .5;
       conf.wheelRadius = .3;
-	  conf.wheelMotorPower = 1;
-	  conf.wheelMotorMaxSpeed = 1;
+	  //conf.wheelMotorPower = 1;
+	  //conf.wheelMotorMaxSpeed = 1;
    	  // Instantiating the robot
 	  OdeHandle robHandle = odeHandle;
 	  //robHandle.substance.toRubber(5);
@@ -85,9 +85,9 @@ class ThisSim : public Simulation
    	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
 
    	  // Create Agent
-   	  //auto agent = new OdeAgent(global);
+   	  auto agent = new OdeAgent(global);
 	  /** PlotOption will change the interval for how often will be written into the log-file to one */
-   	  auto agent = new OdeAgent( PlotOption(File) );
+   	  //auto agent = new OdeAgent( PlotOption(File) );
 
    	  // Agent initialisation
    	  agent->init(controller, robot, wiring);

@@ -53,7 +53,11 @@ namespace lpzrobots{
   int Differential::getSensorsIntern( sensor* sensors, int sensornumber) {
 	int len=4;
 	sensors[0]= leftWheelJoint->getPosition1();
-	sensors[1]= rightWheelJoint->getPosition1();
+	double rightAngle = rightWheelJoint->getPosition1() + conf.initWheelOrientation;
+	if( rightAngle > M_PI ) sensors[1]=rightAngle-2*M_PI;
+	//else if( rightAngle < M_PI ) sensors[1]=rightAngle+2*M_PI;
+	else sensors[1]=rightAngle;
+	//sensors[1]=rightAngle;
 	sensors[2]= leftWheelJoint->getPosition1Rate();
 	sensors[3]= rightWheelJoint->getPosition1Rate();
 	return len;
@@ -111,7 +115,8 @@ namespace lpzrobots{
     auto rWheel = new Cylinder(conf.wheelRadius, conf.wheelHeight);
     rWheel->setTexture("Images/chess.rgb");
     rWheel->init(odeHandle, conf.wheelMass, osgHandle);
-    Matrix rWheelPose = Matrix::rotate(M_PI/2., 0, 1, 0) *
+    Matrix rWheelPose = Matrix::rotate(M_PI/2.0, 0, 1, 0) *
+      Matrix::rotate(conf.initWheelOrientation, 1, 0, 0) *
       Matrix::translate(-(conf.bodyRadius + conf.wheelHeight / 2.0), .0, .0) *
       pose;
     rWheel->setPose(rWheelPose);
