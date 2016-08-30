@@ -72,6 +72,10 @@ class BasicController : public AbstractController{
     */
     virtual bool restore(FILE* f) override;
 
+	double couplingRod(double y, double phi);
+	double y(double x);	
+
+
   protected:
     double nSensors;
     double nMotors;
@@ -82,6 +86,11 @@ class BasicController : public AbstractController{
 	const lpzrobots::OdeConfig& odeconfig;
     double stepSize;
 	double time;
+
+	double a;
+	double b;
+	double k;
+
 
 };
 

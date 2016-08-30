@@ -35,27 +35,45 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
   stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
   cout << " STEPSIZE OF CONTROLLER = " << stepSize << endl;
   time = 0;
+  addParameterDef("a", &a, 1, "slope of sigmoidal function");
+  addParameterDef("b", &b, 0, "threshold of sigmoidal function");
+  addParameterDef("k", &k, 1, "spring constant between neuron and coupling rod");
 }
 
 
+double BasicController::couplingRod(double y, double phi) {
+    return k*(2.*y-1.-cos(phi))*cos(phi-M_PI/2.);
+  }
+
+
+double BasicController::y(double x) {
+    return 1./(1.+exp(a*(b-x)));
+  }
 
 void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
                                      motor* motors, int number_motors) {
-  //motors[MIdx("artificial motor")] = 10;
+  //if( time<1){
+  if( time<2){
+    motors[0]= 0.5;
+    motors[1]= 0.5;
+  }else{
+    motors[0]= couplingRod( y( cos(M_PI-sensors[0]) ), sensors[0] );
+    motors[1]= couplingRod( y( cos(M_PI-sensors[1]) ), sensors[1] );
+  }
   /** sinus*sinus */
   //double amplitude = 100;
   //motors[MIdx("left motor")] =  amplitude*sin(stepSize)*sin(stepSize);
   //motors[MIdx("right motor")] = amplitude*sin(stepSize)*sin(stepSize);
   /** von 0 auf 50 */
-  if(time<10)
-  {
-    motors[0] =  0;
-  	motors[1] = 0;
-  }
-  else{
-    motors[0] =  4;
-    motors[1] = 4;
-  }
+  //if(time<10 or time>15)
+  //{
+  //  motors[0] =  0;
+  //	motors[1] = 0;
+  //}
+  //else{
+  //  motors[0] = 1;
+  //  motors[1] = 1;
+  //}
   /** linear acceleration */
   //motors[MIdx("left motor")] =  stepSize;
   //motors[MIdx("right motor")] = stepSize;

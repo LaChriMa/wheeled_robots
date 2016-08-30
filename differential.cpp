@@ -61,8 +61,8 @@ namespace lpzrobots{
 
 
   void Differential::setMotorsIntern( const double* motors, int motornumber ) {
-	leftWheelJoint->addForce1( motors[0] );
-	rightWheelJoint->addForce1( motors[1] );
+	leftWheelJoint->addForce1( motors[0]*conf.wheelRadius );
+	rightWheelJoint->addForce1( motors[1]*conf.wheelRadius );
   }
 
 
