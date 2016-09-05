@@ -25,6 +25,7 @@
 #include <selforg/noisegenerator.h>
 #include <ode_robots/odeagent.h>
 #include "differential.h"
+#include "barrel.h"
 #include <ode_robots/speedsensor.h>
 
 #include "basiccontroller.h"
@@ -35,14 +36,18 @@
 
 #include <selforg/agent.h>
 
+#include <string>
+
 using namespace lpzrobots;
 
 class ThisSim : public Simulation
 {
+  std::string robot = "barrel";
+	
   public:
     ThisSim() {
       // set Title of simulation
-      setTitle("BASIC SIM by Simon");
+      setTitle("test version");
    	  //addPaletteFile("colors/UrbanExtraColors.gpl");
    	  //addColorAliasFile("colors/UrbanColorSchema.txt");
    	  //addColorAliasFile("colors.txt");
@@ -62,39 +67,71 @@ class ThisSim : public Simulation
       global.odeConfig.setParam("gravity", -9.8);
 	  global.odeConfig.setParam("noise", 0);
 
-	  // Get the default configuration of the robot
-   	  DifferentialConf conf = Differential::getDefaultConf();
-   	  conf.wheelMass = .5;
-      conf.wheelRadius = .3;
-	  //conf.wheelMotorPower = 1;
-	  //conf.wheelMotorMaxSpeed = 1;
-   	  // Instantiating the robot
-	  OdeHandle robHandle = odeHandle;
-	  //robHandle.substance.toRubber(5);
-   	  auto robot = new Differential(robHandle, osgHandle, conf, "Differential robot");
-   	  // add a speed sensor to the robot (attached to the "main primitive" (-1)
-   	  // (specifiy index if needed)
-   	  robot->addSensor(std::make_shared<SpeedSensor>(1), Attachment(-1));
-   	  // Placing the robot in the scene
-   	  //robot->place( osg::Matrix::rotate(1,1,1,1)*osg::Matrix::translate(1,2,1) );
-   	  robot->place(Pos(0, 0, 0));
+	  if( robot=="differential" ) {
+	  	// Get the default configuration of the robot
+   	  	DifferentialConf conf = Differential::getDefaultConf();
+   	  	conf.wheelMass = .5;
+      	conf.wheelRadius = .3;
+	  	//conf.wheelMotorPower = 1;
+	  	//conf.wheelMotorMaxSpeed = 1;
+   	  	// Instantiating the robot
+	  	OdeHandle robHandle = odeHandle;
+	  	//robHandle.substance.toRubber(5);
+   	  	auto robot = new Differential(robHandle, osgHandle, conf, "Differential robot");
+   	  	// add a speed sensor to the robot (attached to the "main primitive" (-1)
+   	  	// (specifiy index if needed)
+   	  	robot->addSensor(std::make_shared<SpeedSensor>(1), Attachment(-1));
+   	  	// Placing the robot in the scene
+   	  	//robot->place( osg::Matrix::rotate(1,1,1,1)*osg::Matrix::translate(1,2,1) );
+   	  	robot->place(Pos(0, 0, 0));
 
-   	  // Instantiating the controller
-   	  auto controller = new BasicController("Basic Controller", global.odeConfig);
-   	  // Create the wiring with color noise
-   	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
+   	  	// Instantiating the controller
+   	  	auto controller = new BasicController("Basic Controller", global.odeConfig);
+   	  	// Create the wiring with color noise
+   	  	auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
 
-   	  // Create Agent
-   	  auto agent = new OdeAgent(global);
-	  /** PlotOption will change the interval for how often will be written into the log-file to one */
-   	  //auto agent = new OdeAgent( PlotOption(File) );
+   	  	// Create Agent
+   	  	//auto agent = new OdeAgent(global);
+	  	/** PlotOption will change the interval for how often will be written into the log-file to one */
+   	  	auto agent = new OdeAgent( PlotOption(File) );
 
-   	  // Agent initialisation
-   	  agent->init(controller, robot, wiring);
-   	  // Adding the agent to the agents list
-   	  global.agents.push_back(agent);
-   	  global.configs.push_back(agent);
+   	  	// Agent initialisation
+   	  	agent->init(controller, robot, wiring);
+   	  	// Adding the agent to the agents list
+   	  	global.agents.push_back(agent);
+   	  	global.configs.push_back(agent);
+	  }
+	  else if( robot=="barrel" ) {
+   	  	BarrelConf conf = Barrel::getDefaultConf();
+   	  	conf.bodyMass = .5;
+      	conf.bodyRadius = .3;
+      	conf.bodyHeight = .6;
+      	conf.rollingFriction = 0.1;
+      	conf.torque= 1.0;
+	  	OdeHandle robHandle = odeHandle;
+   	  	auto robot = new Barrel(robHandle, osgHandle, conf, "Barrel robot");
+   	  	robot->addSensor(std::make_shared<SpeedSensor>(1), Attachment(-1));
+		robot->addSensor(std::make_shared<SpeedSensor>( 1, SpeedSensor::Rotational ), Attachment(-1));
+   	  	//robot->place( osg::Matrix::rotate(M_PI,0,0,0)*osg::Matrix::translate(1,2,1) );
+   	  	robot->place(Pos(0, 0, 0));
 
+   	  	// Instantiating the controller
+   	  	auto controller = new BasicController("Basic Controller", global.odeConfig);
+   	  	// Create the wiring with color noise
+   	  	auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
+
+   	  	// Create Agent
+   	  	auto agent = new OdeAgent(global);
+	  	/** PlotOption will change the interval for how often will be written into the log-file to one */
+   	  	//auto agent = new OdeAgent( PlotOption(File) );
+
+   	  	// Agent initialisation
+   	  	agent->init(controller, robot, wiring);
+   	  	// Adding the agent to the agents list
+   	  	global.agents.push_back(agent);
+   	  	global.configs.push_back(agent);
+	
+	  }
 
 	  
 
