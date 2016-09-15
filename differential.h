@@ -44,9 +44,7 @@ namespace lpzrobots{
     double wheelRadius;         // Radius of the cylinder defining the wheel
     double wheelHeight;         // Height of the cylinder defining the wheel
     double wheelMass;           // Mass of the wheel
-    //double wheelMotorPower;     // Maximum power allowed to the motor to reach MaxSpeed
-    //double wheelMotorMaxSpeed;  // Maximum speed of the wheel
-    //double irRange;             // Range (max distance) of the infra-red sensors
+    double sWheelMass;       
 	double initWheelOrientation;
   } DifferentialConf;
 
@@ -77,9 +75,7 @@ namespace lpzrobots{
        conf.wheelRadius        = .3;
        conf.wheelHeight        = .1;
        conf.wheelMass          = 5.;
-       //conf.wheelMotorPower    = 5.;
-       //conf.wheelMotorMaxSpeed = 5.;
-       //conf.irRange            = 2.;
+       conf.sWheelMass          = 0.00001;
 	   conf.initWheelOrientation = 0;//M_PI/4.0;
        return conf;
      }
@@ -101,7 +97,7 @@ namespace lpzrobots{
       */
      virtual void create(const osg::Matrix& pose);
 
-	 int getSensorNumberIntern(){ return 4; }; 
+	 int getSensorNumberIntern(){ return 5; }; 
 	 int getSensorsIntern( sensor* sensors, int sensornumber ); 
 
 	 virtual int getMotorNumberIntern(){ return 2; };
@@ -110,6 +106,8 @@ namespace lpzrobots{
 	private:
 	 HingeJoint* leftWheelJoint;
 	 HingeJoint* rightWheelJoint;
+
+	 double motorVel;
 
   };
 

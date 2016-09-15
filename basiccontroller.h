@@ -90,7 +90,11 @@ class BasicController : public AbstractController{
 	double a;
 	double b;
 	double k;
-
+	double y_leftWheel;
+	double y_rightWheel;
+	double x_actual;
+	double x_target;
+	double omega;
 
 };
 

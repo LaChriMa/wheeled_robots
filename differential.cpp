@@ -51,7 +51,7 @@ namespace lpzrobots{
 
 
   int Differential::getSensorsIntern( sensor* sensors, int sensornumber) {
-	int len=4;
+	int len=5;
 	sensors[0]= leftWheelJoint->getPosition1();
 	double rightAngle = rightWheelJoint->getPosition1() + conf.initWheelOrientation;
 	if( rightAngle > M_PI ) sensors[1]=rightAngle-2*M_PI;
@@ -60,11 +60,17 @@ namespace lpzrobots{
 	//sensors[1]=rightAngle;
 	sensors[2]= leftWheelJoint->getPosition1Rate();
 	sensors[3]= rightWheelJoint->getPosition1Rate();
+	
+	double Inertia = 0.6;
+//	sensors[4]= sensors[4] + motorVel / Inertia * 0.01;
+	sensors[4] = 0;
+
 	return len;
   }
 
 
   void Differential::setMotorsIntern( const double* motors, int motornumber ) {
+	motorVel = motors[0];
 	leftWheelJoint->addForce1( motors[0]*conf.wheelRadius );
 	rightWheelJoint->addForce1( motors[1]*conf.wheelRadius );
   }
@@ -150,7 +156,7 @@ namespace lpzrobots{
 
     auto fsWheel = new Cylinder(swRadius, conf.wheelHeight);
     fsWheel->setTexture("Images/chess.rgb");
-    fsWheel->init(odeHandle, conf.wheelMass, osgHandle);
+    fsWheel->init(odeHandle, conf.sWheelMass, osgHandle);
     Matrix fsWheelPose =
       Matrix::rotate(M_PI/2., 0, 1, 0) *
       Matrix::translate(0, conf.bodyRadius-swRadius, -conf.wheelRadius+swRadius) *
@@ -164,7 +170,7 @@ namespace lpzrobots{
 
     auto bsWheel = new Cylinder(swRadius, conf.wheelHeight);
     bsWheel->setTexture("Images/chess.rgb");
-    bsWheel->init(odeHandle, conf.wheelMass, osgHandle);
+    bsWheel->init(odeHandle, conf.sWheelMass, osgHandle);
     Matrix bsWheelPose =
       Matrix::rotate(M_PI/2., 0, 1, 0) *
       Matrix::translate(0, -( conf.bodyRadius-swRadius ), -conf.wheelRadius+swRadius) *
