@@ -94,7 +94,8 @@ class BasicController : public AbstractController{
 	double y_rightWheel;
 	double x_actual;
 	double x_target;
-	double omega;
+	double frequ;
+	int mode;
 
 };
 

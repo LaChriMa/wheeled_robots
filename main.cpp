@@ -62,7 +62,7 @@ class ThisSim : public Simulation
       global.odeConfig.setParam("controlinterval", 1);
       global.odeConfig.setParam("gravity", -9.8);
 	  global.odeConfig.setParam("noise", 0);
-	  global.odeConfig.addParameterDef("friction", &friction, 0, "parameter for velocity depending friction");
+	  global.odeConfig.addParameterDef("friction", &friction, 0.1, "parameter for velocity depending friction");
 
 
    	  DifferentialConf conf = Differential::getDefaultConf();
