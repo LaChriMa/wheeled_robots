@@ -38,7 +38,7 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
   addParameterDef("a", &a, 2, "slope of sigmoidal function");
   addParameterDef("b", &b, 0, "threshold of sigmoidal function");
   addParameterDef("k", &k, 1, "spring constant between neuron and coupling rod");
-  addParameterDef("mode", &mode, 0, "0: sigmoidal y(x) ; 1: sinus sin(freq) ; 2: acceleration ");
+  addParameterDef("mode", &mode, 3, "0: sigmoidal y(x) ; 1: sinus sin(freq) ; 2: acceleration ");
   addParameterDef("frequency", &frequ, 0.5, "rotational frequency of the driving force");
   //addInspectableValue("y_leftWheel",  &y_leftWheel,  "driving function");
   //addInspectableValue("y_rightWheel", &y_rightWheel, "driving function");
@@ -69,7 +69,7 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
        motors[1] = 1.;
      }
 	 else{
-	   if( mode==0 ){
+	   if( mode==0 or mode==3 ){
 	     y_leftWheel  = y( cos(sensors[0]) );
 	     y_rightWheel = y( cos(sensors[1]) );
 	   }
@@ -81,12 +81,16 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
 	   	 motors[0] = 1.;
 	   	 motors[1] = 1.;
 	   }
-	   if( mode==0 or mode==1 ){
+	   if( mode==0 or mode==1 or (mode==3 and !(time<8)) ){
 	     x_actual = cos(sensors[0]);
 	     x_target = 2.*y_leftWheel-1.;
 
 	     motors[0] = couplingRod( y_leftWheel, sensors[0] );
 	     motors[1] = couplingRod( y_rightWheel, sensors[1] );
+	   }
+	   if( mode==3 and time<8 ){
+	   	 motors[0] = 0.;
+	   	 motors[1] = 0.;
 	   }
      }
   }
