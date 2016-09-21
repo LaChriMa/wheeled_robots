@@ -30,138 +30,121 @@ using namespace matrix;
 BasicController::BasicController(const std::string& name, const lpzrobots::OdeConfig& odeconfig)
   : AbstractController(name, "1.0"), odeconfig(odeconfig)
 {
-  initialised=false;
-
   stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
   cout << " STEPSIZE OF CONTROLLER = " << stepSize << endl;
   time = 0;
+
   addParameterDef("a", &a, 2, "slope of sigmoidal function");
   addParameterDef("b", &b, 0, "threshold of sigmoidal function");
   addParameterDef("k", &k, 1, "spring constant between neuron and coupling rod");
-  addParameterDef("mode", &mode, 3, "0: sigmoidal y(x) ; 1: sinus sin(freq) ; 2: acceleration ");
+  addParameterDef("mode", &mode, 0, "0: sigmoidal a,b,timeDelay; 1: sinus  frequency; 2: speed-up; 3: speed-up<5sec,nothing<8sec,sigmoid");
+  addParameterDef("timeDelay", &timeDelay, 0, "creates a time delay cos(phi-PI*delay) in the sigmoidal function");
   addParameterDef("frequency", &frequ, 0.5, "rotational frequency of the driving force");
-  //addInspectableValue("y_leftWheel",  &y_leftWheel,  "driving function");
-  //addInspectableValue("y_rightWheel", &y_rightWheel, "driving function");
-  addInspectableValue("x_actual", &x_actual,  "actual position between [-1,1]");
-  addInspectableValue("x_target", &x_target,  "target position between [-1,1]");
+
+  addInspectableValue("x_act_l", &x_act_l,  "actual position of left x between [-1,1]");
+  addInspectableValue("x_tar_l", &x_tar_l,  "target position of left x between [-1,1]");
+  addInspectableValue("x_act_r", &x_act_r,  "actual position of right x between [-1,1]");
+  addInspectableValue("x_tar_r", &x_tar_r,  "target position of right x between [-1,1]");
 }
 
 
-double BasicController::couplingRod(double y, double phi) 
+double BasicController::couplingRod(double x_tar, double phi) 
 {
-    return k * sin(phi) * ( 2.*y-1. - cos(phi) );
+  return k * sin(phi) * ( x_tar - cos(phi) );
 }
 
 
-double BasicController::y(double x)
-{
-    return 1./( 1.+exp( a*(b-x) ) );
+double BasicController::y(double phi)
+{ // sigmoidal funcion,  where x=cos(phi-dphi)
+  double x = cos(phi-timeDelay);
+  return 1./( 1.+exp( a*(b-x) ) );
 }
 
 void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
                                      motor* motors, int number_motors)
 {
-  if( true )
+  if( time<5 ) // acceleration in the first 5 seconds
   {
-     if( time<5 )
-	 {
-       motors[0] = 1.;
-       motors[1] = 1.;
-     }
-	 else{
-	   if( mode==0 or mode==3 ){
-	     y_leftWheel  = y( cos(sensors[0]) );
-	     y_rightWheel = y( cos(sensors[1]) );
-	   }
-	   if( mode==1 ){
-	     y_leftWheel  = 0.8 *sin(2*M_PI*frequ*time)/2. +0.5;
-	     y_rightWheel = 0.8 *sin(2*M_PI*frequ*time)/2. +0.5;
-	   }
-	   if( mode==2 ){
-	   	 motors[0] = 1.;
-	   	 motors[1] = 1.;
-	   }
-	   if( mode==0 or mode==1 or (mode==3 and !(time<8)) ){
-	     x_actual = cos(sensors[0]);
-	     x_target = 2.*y_leftWheel-1.;
-
-	     motors[0] = couplingRod( y_leftWheel, sensors[0] );
-	     motors[1] = couplingRod( y_rightWheel, sensors[1] );
-	   }
-	   if( mode==3 and time<8 ){
-	   	 motors[0] = 0.;
-	   	 motors[1] = 0.;
-	   }
-     }
+    motors[0] = 1.;
+    motors[1] = 1.;
   }
-  //if( false )
-  //{
-  //  double amplitude = 2;
-  //  if(time<5)
-  //  {
-  //    motors[0] = 1;
-  //    motors[1] = 1;
-  //  }
-  //  else{
-  //    motors[0] = amplitude*sin(time);
-  //    motors[1] = amplitude*sin(time);
-  //  }
-  //}
-  //if( false )
-  //{
-  //  if(time<1)
-  //  {
-  //    motors[0] = 0;
-  //    motors[1] = 0;
-  //  }
-  //  else if(time<8)
-  //  {
-  //    motors[0] = 2;
-  //    motors[1] = 2;
-  //  }
-  //  else if(time<10)
-  //  {
-  //    motors[0] = 0;
-  //    motors[1] = 0;
-  //  }
-  //  else if(time<12)
-  //  {
-  //    motors[0] =-0.5;
-  //    motors[1] =-0.5;
-  //  }
-  //  else if(time<14)
-  //  {
-  //    motors[0] =0.5;
-  //    motors[1] =0.5;
-  //  }  
-  //  else if(time>14)
-  //  {
-  //    motors[0] = 0;
-  //    motors[1] = 0;
-  //  }
-  //}
-  /** linear acceleration */
-  //motors[MIdx("left motor")] =  stepSize;
-  //motors[MIdx("right motor")] = stepSize;
+  else{  // checking the modes
+    if( mode==0 ) // sigmoid
+	{   
+      y_l = y( sensors[0] );
+      y_r = y( sensors[1] );
+
+      x_act_l = cos(sensors[0]);
+      x_tar_l = 2.*y_l-1.;
+      x_act_r = cos(sensors[1]);
+      x_tar_r = 2.*y_r-1.;
+
+      motors[0] = couplingRod( x_tar_l, sensors[0] );
+      motors[1] = couplingRod( x_tar_r, sensors[1] );
+    }
+    else if( mode==1 ) // sinus
+	{
+      y_l  = 0.8 *sin(2*M_PI*frequ*time)/2. +0.5;
+      y_r = 0.8 *sin(2*M_PI*frequ*time)/2. +0.5;
+
+      x_act_l = cos(sensors[0]);
+      x_tar_l = 2.*y_l-1.;
+      x_act_r = cos(sensors[1]);
+      x_tar_r = 2.*y_r-1.;
+
+      motors[0] = couplingRod( x_tar_l, sensors[0] );
+      motors[1] = couplingRod( x_tar_r, sensors[1] );
+    }
+    else if( mode==2 ) // linear acceleration
+	{
+      motors[0] = 1.;
+      motors[1] = 1.;
+    }
+    else if( mode==3 )
+	{  
+	  if( time<8 ) // linear acceleration
+	  {
+    	 motors[0] = 0.;
+    	 motors[1] = 0.;
+	  }
+	  else{ // sigmoid
+        y_l  = y( sensors[0] );
+        y_r = y( sensors[1] );
+		
+        x_act_l = cos(sensors[0]);
+      	x_tar_l = 2.*y_l-1.;
+        x_act_r = cos(sensors[1]);
+        x_tar_r = 2.*y_r-1.;
+
+        motors[0] = couplingRod( x_tar_l, sensors[0] );
+        motors[1] = couplingRod( x_tar_r, sensors[1] );
+	  }
+    }
+    else if( mode==4 )
+	{  
+	  motors[0]=0;
+	  motors[1]=0;
+    }
+  }
  
   time += stepSize;
 }
 
 void BasicController::step(const sensor* sensors, int sensornumber,
                            motor* motors, int motornumber) {
+  // counter for time
   double old_stepSize = stepSize;
   stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
   if( old_stepSize != stepSize) cout << " STEPSIZE OF CONTROLLER = " << stepSize << endl;
+  // generating motor values
   stepNoLearning(sensors,sensornumber, motors, motornumber);
 }
 
 
 void BasicController::init(int sensornumber, int motornumber, RandGen* randGen) {
-  //assert(motornumber >=2 && sensornumber >=8);
   // Set the number of sensors and motors
   nSensors = sensornumber;
   nMotors  = motornumber;
-  initialised=true;
 }
 
 

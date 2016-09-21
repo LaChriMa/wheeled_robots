@@ -72,7 +72,7 @@ class BasicController : public AbstractController{
     */
     virtual bool restore(FILE* f) override;
 
-	double couplingRod(double y, double phi);
+	double couplingRod(double x_tar, double phi);
 	double y(double x);	
 
 
@@ -89,11 +89,17 @@ class BasicController : public AbstractController{
 
 	double a;
 	double b;
+	double timeDelay;
+
 	double k;
-	double y_leftWheel;
-	double y_rightWheel;
-	double x_actual;
-	double x_target;
+
+	double y_l;
+	double y_r;
+	double x_act_l;
+	double x_tar_l;
+	double x_act_r;
+	double x_tar_r;
+
 	double frequ;
 	int mode;
 
