@@ -33,18 +33,22 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
   stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
   cout << " STEPSIZE OF CONTROLLER = " << stepSize << endl;
   time = 0;
+  x_l=0; x_r=0;
 
-  addParameterDef("a", &a, 2, "slope of sigmoidal function");
-  addParameterDef("b", &b, 0, "threshold of sigmoidal function");
-  addParameterDef("k", &k, 1, "spring constant between neuron and coupling rod");
-  addParameterDef("mode", &mode, 0, "0: sigmoidal a,b,timeDelay; 1: sinus  frequency; 2: speed-up; 3: speed-up<5sec,nothing<8sec,sigmoid");
-  addParameterDef("timeDelay", &timeDelay, 0, "creates a time delay cos(phi-PI*delay) in the sigmoidal function");
-  addParameterDef("frequency", &frequ, 0.5, "rotational frequency of the driving force");
+  addParameterDef("a", &a, 2, "mode 0 & 4; slope of sigmoidal function");
+  addParameterDef("b", &b, 0, "mode 0 & 4; threshold of sigmoidal function");
+  addParameterDef("k", &k, 1, "all modes; spring constant between neuron and coupling rod");
+  addParameterDef("gamma", &gamma, 1, "mode 4; decay constant for mode 4");
+  addParameterDef("mode", &mode, 4, "0: sigmoidal; 1: sinus; 2: speed-up; 4: membrane");
+  addParameterDef("timeDelay", &timeDelay, 0, "mode 0; creates a time delay cos(phi-delay) in the sigmoidal function");
+  addParameterDef("frequency", &frequ, 0.5, "mode 1; rotational frequency of the driving force");
 
   addInspectableValue("x_act_l", &x_act_l,  "actual position of left x between [-1,1]");
   addInspectableValue("x_tar_l", &x_tar_l,  "target position of left x between [-1,1]");
   addInspectableValue("x_act_r", &x_act_r,  "actual position of right x between [-1,1]");
   addInspectableValue("x_tar_r", &x_tar_r,  "target position of right x between [-1,1]");
+  addInspectableValue("x_l", &x_l,  "mode 4; membrane potential");
+  addInspectableValue("x_r", &x_r,  "mode 4; membrane potential");
 }
 
 
@@ -57,6 +61,11 @@ double BasicController::couplingRod(double x_tar, double phi)
 double BasicController::y(double phi)
 { // sigmoidal funcion,  where x=cos(phi-dphi)
   double x = cos(phi-timeDelay);
+  return 1./( 1.+exp( a*(b-x) ) );
+}
+
+double BasicController::y_membr(double x)
+{ // sigmoidal funcion  
   return 1./( 1.+exp( a*(b-x) ) );
 }
 
@@ -108,7 +117,7 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
     	 motors[1] = 0.;
 	  }
 	  else{ // sigmoid
-        y_l  = y( sensors[0] );
+        y_l = y( sensors[0] );
         y_r = y( sensors[1] );
 		
         x_act_l = cos(sensors[0]);
@@ -122,8 +131,20 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
     }
     else if( mode==4 )
 	{  
-	  motors[0]=0;
-	  motors[1]=0;
+      x_act_l = cos(sensors[0]);
+      x_act_r = cos(sensors[1]);
+
+	  x_l += gamma*( x_act_l - x_l );
+	  x_r += gamma*( x_act_r - x_r );
+
+      y_l = y_membr( x_l );
+      y_r = y_membr( x_r );
+
+      x_tar_l = 2.*y_l-1.;
+      x_tar_r = 2.*y_r-1.;
+
+	  motors[0] = couplingRod( x_tar_l, sensors[0] );
+	  motors[1] = couplingRod( x_tar_r, sensors[1] );
     }
   }
  

@@ -73,7 +73,8 @@ class BasicController : public AbstractController{
     virtual bool restore(FILE* f) override;
 
 	double couplingRod(double x_tar, double phi);
-	double y(double x);	
+	double y(double phi);	
+	double y_membr(double x);	
 
 
   protected:
@@ -103,6 +104,10 @@ class BasicController : public AbstractController{
 	double frequ;
 	int mode;
 
+	double x_l;
+	double x_r;
+	double gamma;
+	
 };
 
 #endif // Header guard
