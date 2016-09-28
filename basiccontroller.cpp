@@ -37,8 +37,8 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
 
   addParameterDef("a", &a, 2, "mode 0 & 4; slope of sigmoidal function");
   addParameterDef("b", &b, 0, "mode 0 & 4; threshold of sigmoidal function");
-  addParameterDef("k", &k, 1, "all modes; spring constant between neuron and coupling rod");
-  addParameterDef("gamma", &gamma, 1, "mode 4; decay constant for mode 4");
+  addParameterDef("k", &k, 2, "all modes; spring constant between neuron and coupling rod");
+  addParameterDef("gamma", &gamma, 2., "mode 4; decay constant for mode 4");
   addParameterDef("mode", &mode, 4, "0: sigmoidal; 1: sinus; 2: speed-up; 4: membrane");
   addParameterDef("timeDelay", &timeDelay, 0, "mode 0; creates a time delay cos(phi-delay) in the sigmoidal function");
   addParameterDef("frequency", &frequ, 0.5, "mode 1; rotational frequency of the driving force");
@@ -134,8 +134,11 @@ void BasicController::stepNoLearning(const sensor* sensors, int number_sensors,
       x_act_l = cos(sensors[0]);
       x_act_r = cos(sensors[1]);
 
-	  x_l += gamma*( x_act_l - x_l );
-	  x_r += gamma*( x_act_r - x_r );
+	  //double gamma_in_ds = gamma *1000 *stepSize;
+	  double gamma_in_ds = gamma;
+	  
+	  x_l += gamma_in_ds*( x_act_l - x_l )*stepSize;
+	  x_r += gamma_in_ds*( x_act_r - x_r )*stepSize;
 
       y_l = y_membr( x_l );
       y_r = y_membr( x_r );
