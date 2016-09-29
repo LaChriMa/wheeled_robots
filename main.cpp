@@ -76,11 +76,12 @@ class ThisSim : public Simulation
    	  conf.wheelMass 		  = .5;
       conf.wheelRadius 		  = .3;
       conf.wheelHeight        = .1; 
+      conf.initWheelOrientation = 0.; //M_PI/2.; //M_PI/4.0;
       conf.bodyRadius         = 1.; 
       conf.bodyHeight         = .5; 
       conf.bodyMass           = 1.; 
-      conf.sWheelMass          = 0.00001;
-      conf.initWheelOrientation = 0.; //M_PI/2.; //M_PI/4.0;
+      conf.supportWheels      = false; 
+      conf.sWheelMass         = 0.00001;
 
 	  OdeHandle robHandle = odeHandle;
 	  //robHandle.substance.toRubber(5);

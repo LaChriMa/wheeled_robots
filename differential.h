@@ -44,8 +44,9 @@ namespace lpzrobots{
     double wheelRadius;         // Radius of the cylinder defining the wheel
     double wheelHeight;         // Height of the cylinder defining the wheel
     double wheelMass;           // Mass of the wheel
-    double sWheelMass;       
 	double initWheelOrientation;
+	bool supportWheels;
+    double sWheelMass;       
   } DifferentialConf;
 
   /**
@@ -75,8 +76,9 @@ namespace lpzrobots{
        conf.wheelRadius        = .3;
        conf.wheelHeight        = .1;
        conf.wheelMass          = 5.;
-       conf.sWheelMass          = 0.00001;
 	   conf.initWheelOrientation = 0;//M_PI/4.0;
+	   conf.supportWheels = false;
+       conf.sWheelMass          = 0.00001;
        return conf;
      }
 
