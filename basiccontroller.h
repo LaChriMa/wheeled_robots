@@ -20,12 +20,10 @@
  *                                                                         *
  ***************************************************************************/
 
-// Header guard
 #ifndef __TEST_CONTROLLER
 #define __TEST_CONTROLLER
 
 #include <selforg/abstractcontroller.h>
-
 #include <ode_robots/odeconfig.h>
 
 
@@ -72,41 +70,55 @@ class BasicController : public AbstractController{
     */
     virtual bool restore(FILE* f) override;
 
+	/** Calculates tangential force resulting from the spring force 
+	*/
 	double couplingRod(double x_tar, double phi);
-	double y(double phi);	
-	double y_membr(double x);	
+
+	/** sigmoidal transfer function with x="membrane potential"
+	*/
+	double y(double x);	
+
+	/** sigmoidal transfer function with phase shift: x=cos(phi+dp)
+	*/
+	double y(double phi, double deltaPhi);	
 
 
   protected:
     double nSensors;
     double nMotors;
-    bool initialised;
-    double threshold;
+    //bool initialised;
+    //double threshold;
   
   private:
 	const lpzrobots::OdeConfig& odeconfig;
     double stepSize;
 	double time;
-
+	
+	/** sigmoidal */
 	double a;
 	double b;
-	double timeDelay;
-
+	double delPhi;
+	
+	/** coupling rod */
 	double k;
 
+	/** all modes */
+	int mode;
 	double y_l;
 	double y_r;
 	double x_act_l;
-	double x_tar_l;
 	double x_act_r;
+	double x_tar_l;
 	double x_tar_r;
-
+	
+	/** sinus */
 	double frequ;
-	int mode;
-
+	
+	/** membrane potential */
 	double x_l;
 	double x_r;
-	double gamma;
+	double gamma_l;
+	double gamma_r;
 	
 };
 
