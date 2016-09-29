@@ -45,8 +45,8 @@ class ThisSim : public Simulation
 {
 	
   public:
-	double friction;
-	std::string env = "no";
+	double friction;  /** velocity depending friction factor */
+	std::string env = "no";  /** "wall", "playground" or "no" */
 	bool randObstacles = false;
  	
     ThisSim() {
@@ -59,6 +59,7 @@ class ThisSim : public Simulation
 
     virtual void start(const OdeHandle& odeHandle, const OsgHandle& osgHandle, GlobalData& global)
     {
+	  /**** GLOBAL SETTINGS ****/
       setCameraHomePos(Pos(-14,14, 10),  Pos(-135, -24, 0));
 	  setCameraMode( Follow );
 
@@ -67,8 +68,10 @@ class ThisSim : public Simulation
       global.odeConfig.setParam("gravity", -9.8);
 	  global.odeConfig.setParam("noise", 0);
 	  global.odeConfig.addParameterDef("friction", &friction, 0.1, "parameter for velocity depending friction");
+	  /**** END GLOBAL SETTINGS ****/
 
 
+	  /**** WHEELED ROBOT ****/
    	  DifferentialConf conf = Differential::getDefaultConf();
    	  conf.wheelMass 		  = .5;
       conf.wheelRadius 		  = .3;
@@ -87,17 +90,14 @@ class ThisSim : public Simulation
 
    	  auto controller = new BasicController("Basic Controller", global.odeConfig);
    	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
-
-	  /** PlotOption will change the interval for how often 
-	  **  will be written into the log-file to one */
-   	  //auto agent = new OdeAgent( PlotOption(File) );
+   	  //auto agent = new OdeAgent( PlotOption(File) );  /** set the frequency for writing in the log-file*/
    	  auto agent = new OdeAgent(global);
 
    	  agent->init(controller, robot, wiring);
    	  global.agents.push_back(agent);
    	  global.configs.push_back(agent);
+	  /**** END WHEELED ROBOT ****/
 		  
-
 
 	  /*** ENVIRONMENT ***/
 	  if( env == "wall" )
@@ -139,8 +139,9 @@ class ThisSim : public Simulation
     	    }
     	}
 	  }
-
+	  /*** End ENVIRONMENT ***/
     }
+
 
     virtual void addCallback(GlobalData& globalData, bool draw, bool pause, bool control) {
 	  if(!pause)
@@ -151,22 +152,28 @@ class ThisSim : public Simulation
 	  }
     }
 
+
     virtual bool command (const OdeHandle&, const OsgHandle&, GlobalData& globalData, int key, bool down) {
-	  if (down) {
+	  if (down) 
+	  {
+		OdeRobot* rob = globalData.agents[0]->getRobot();
 		switch( (char) key)
-	 	{
-		  case 'j': dBodyAddForce( globalData.agents[0]->getRobot()->getMainPrimitive()->getBody(), 100, 0, 0); break;
-		  case 'J': dBodyAddForce( globalData.agents[0]->getRobot()->getMainPrimitive()->getBody(), -100, 0, 0); break;
-		  case 'k': dBodyAddForce( globalData.agents[0]->getRobot()->getMainPrimitive()->getBody(), 0, 100, 0); break;
-		  case 'K': dBodyAddForce( globalData.agents[0]->getRobot()->getMainPrimitive()->getBody(), 0, -100, 0); break;
+	 	{ 
+		  case 'j': dBodyAddForce( rob->getMainPrimitive()->getBody(), 100, 0, 0); break;
+		  case 'J': dBodyAddForce( rob->getMainPrimitive()->getBody(), -100, 0, 0); break;
+		  case 'k': dBodyAddForce( rob->getMainPrimitive()->getBody(), 0, 100, 0); break;
+		  case 'K': dBodyAddForce( rob->getMainPrimitive()->getBody(), 0, -100, 0); break;
+		  case 'l': dBodyAddTorque( rob->getMainPrimitive()->getBody(), 0, 0, 220); break;
 	 	}
 	  }
       return false;
     }
 
+
     virtual void bindingDescription(osg::ApplicationUsage & au) const {
     }
 };
+
 
 int main (int argc, char **argv)
 {
