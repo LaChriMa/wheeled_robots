@@ -149,9 +149,10 @@ namespace lpzrobots{
 		Matrix fsWheelPose = Matrix::translate(0, conf.bodyRadius-2*swRadius, yPoseSW)*pose;
 		fsWheel->setPose( fsWheelPose );
 		objects.push_back( fsWheel );
-        auto bodyFrontWheelJoint = new HingeJoint(body, fsWheel, fsWheel->getPosition(),
-                                                  Axis(1, 0, 0) * fsWheelPose);
-        bodyFrontWheelJoint->init(odeHandle, osgHandle);
+        //auto bodyFrontWheelJoint = new HingeJoint(body, fsWheel, fsWheel->getPosition(),
+        //                                                  Axis(1, 0, 0) * fsWheelPose);
+        auto bodyFrontWheelJoint = new BallJoint( body, fsWheel, fsWheel->getPosition());
+        bodyFrontWheelJoint->init(odeHandle, osgHandle, true, conf.wheelRadius/8. );
         joints.push_back(bodyFrontWheelJoint);
 
 		auto bsWheel = new Sphere(swRadius);
@@ -161,9 +162,10 @@ namespace lpzrobots{
 				*pose;
 		bsWheel->setPose( bsWheelPose );
 		objects.push_back( bsWheel );
-        auto bodyBackWheelJoint = new HingeJoint(body, bsWheel, bsWheel->getPosition(),
-                                                  Axis(1, 0, 0) * bsWheelPose);
-        bodyBackWheelJoint->init(odeHandle, osgHandle);
+        //auto bodyBackWheelJoint = new HingeJoint(body, bsWheel, bsWheel->getPosition(),
+        //                                          Axis(1, 0, 0) * bsWheelPose);
+        auto bodyBackWheelJoint = new BallJoint(body, bsWheel, bsWheel->getPosition());
+        bodyBackWheelJoint->init(odeHandle, osgHandle, true, conf.wheelRadius/8. );
         joints.push_back(bodyBackWheelJoint);
 	  }
 	  else 
