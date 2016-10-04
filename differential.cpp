@@ -83,25 +83,6 @@ namespace lpzrobots{
     body->setPose(pose);
     objects.push_back(body);
 
-	/** artificial motor */
-	//auto cWheel = new Cylinder(0.1, 0.01);
-    //cWheel->setTexture("Images/chess.rgb");
-    //cWheel->init(odeHandle, conf.wheelMass, osgHandle);
-    //Matrix cWheelPose = pose;
-    //cWheel->setPose(cWheelPose);
-    //objects.push_back(cWheel);
-    //auto centerWheelJoint = new HingeJoint(body, cWheel,
-    //                                          cWheel->getPosition(),
-    //                                          Axis(0, 0, 1) * cWheelPose);
-    //centerWheelJoint->init(odeHandle, osgHandle);
-    //joints.push_back(centerWheelJoint);
-    //auto m = std::make_shared<AngularMotor1Axis>(odeHandle, centerWheelJoint,
-    //                                                 conf.wheelMotorPower);
-    //m->setBaseName("artificial motor");
-    //m->setVelovityFactor(conf.wheelMotorMaxSpeed);
-    //addSensor(m);
-    //addMotor(m);
-
     /* Creating the left wheel */
     auto lWheel = new Cylinder(conf.wheelRadius, conf.wheelHeight);
     lWheel->setTexture("Images/chess.rgb");
@@ -155,34 +136,66 @@ namespace lpzrobots{
 	if( conf.supportWheels )
 	{
 	  double swRadius = conf.wheelRadius/4;
+	  //double yPoseSW = -(conf.wheelRadius-swRadius*1.15);
+	  double yPoseSW = -conf.wheelRadius+swRadius;
 
-      auto fsWheel = new Cylinder(swRadius, conf.wheelHeight);
-      fsWheel->setTexture("Images/chess.rgb");
-      fsWheel->init(odeHandle, conf.sWheelMass, osgHandle);
-      Matrix fsWheelPose =
-        Matrix::rotate(M_PI/2., 0, 1, 0) *
-        Matrix::translate(0, conf.bodyRadius-swRadius, -conf.wheelRadius+swRadius) *
-        pose;
-      fsWheel->setPose(fsWheelPose);
-      objects.push_back(fsWheel);
-      auto bodyFrontWheelJoint = new HingeJoint(body, fsWheel, fsWheel->getPosition(),
-                                                Axis(0, 0, 1) * fsWheelPose);
-      bodyFrontWheelJoint->init(odeHandle, osgHandle);
-      joints.push_back(bodyFrontWheelJoint);
+	  OdeHandle SWHandle = odeHandle;
+	  //SWHandle.substance.toMetal(0.1);
+	  //SWHandle.substance.toRubber(50);
+	  if( conf.sphericalSupportWheels )
+	  {	
+		auto fsWheel = new Sphere(swRadius);
+		fsWheel->init( SWHandle, conf.sWheelMass, osgHandle);
+		Matrix fsWheelPose = Matrix::translate(0, conf.bodyRadius-2*swRadius, yPoseSW)*pose;
+		fsWheel->setPose( fsWheelPose );
+		objects.push_back( fsWheel );
+        auto bodyFrontWheelJoint = new HingeJoint(body, fsWheel, fsWheel->getPosition(),
+                                                  Axis(1, 0, 0) * fsWheelPose);
+        bodyFrontWheelJoint->init(odeHandle, osgHandle);
+        joints.push_back(bodyFrontWheelJoint);
 
-      auto bsWheel = new Cylinder(swRadius, conf.wheelHeight);
-      bsWheel->setTexture("Images/chess.rgb");
-      bsWheel->init(odeHandle, conf.sWheelMass, osgHandle);
-      Matrix bsWheelPose =
-        Matrix::rotate(M_PI/2., 0, 1, 0) *
-        Matrix::translate(0, -( conf.bodyRadius-swRadius ), -conf.wheelRadius+swRadius) *
-        pose;
-      bsWheel->setPose(bsWheelPose);
-      objects.push_back(bsWheel);
-      auto bodyBackWheelJoint = new HingeJoint(body, bsWheel, bsWheel->getPosition(),
-                                                Axis(0, 0, 1) * bsWheelPose);
-      bodyBackWheelJoint->init(odeHandle, osgHandle);
-      joints.push_back(bodyBackWheelJoint);
+		auto bsWheel = new Sphere(swRadius);
+		bsWheel->init( SWHandle, conf.sWheelMass, osgHandle);
+		Matrix bsWheelPose = 
+				Matrix::translate(0, -conf.bodyRadius+2.*swRadius, yPoseSW)
+				*pose;
+		bsWheel->setPose( bsWheelPose );
+		objects.push_back( bsWheel );
+        auto bodyBackWheelJoint = new HingeJoint(body, bsWheel, bsWheel->getPosition(),
+                                                  Axis(1, 0, 0) * bsWheelPose);
+        bodyBackWheelJoint->init(odeHandle, osgHandle);
+        joints.push_back(bodyBackWheelJoint);
+	  }
+	  else 
+	  { /** cylindrical support wheels */
+        auto fsWheel = new Cylinder(swRadius, conf.wheelHeight);
+        fsWheel->setTexture("Images/chess.rgb");
+        fsWheel->init(SWHandle, conf.sWheelMass, osgHandle);
+        Matrix fsWheelPose =
+          Matrix::rotate(M_PI/2., 0, 1, 0) *
+          Matrix::translate(0, conf.bodyRadius-swRadius, yPoseSW) *
+          pose;
+        fsWheel->setPose(fsWheelPose);
+        objects.push_back(fsWheel);
+        auto bodyFrontWheelJoint = new HingeJoint(body, fsWheel, fsWheel->getPosition(),
+                                                  Axis(0, 0, 1) * fsWheelPose);
+        bodyFrontWheelJoint->init(odeHandle, osgHandle);
+        joints.push_back(bodyFrontWheelJoint);
+
+        auto bsWheel = new Cylinder(swRadius, conf.wheelHeight);
+        bsWheel->setTexture("Images/chess.rgb");
+        bsWheel->init(SWHandle, conf.sWheelMass, osgHandle);
+        Matrix bsWheelPose =
+          Matrix::rotate(M_PI/2., 0, 1, 0) *
+          Matrix::translate(0, -( conf.bodyRadius-swRadius ), yPoseSW) *
+          pose;
+        bsWheel->setPose(bsWheelPose);
+        objects.push_back(bsWheel);
+        auto bodyBackWheelJoint = new HingeJoint(body, bsWheel, bsWheel->getPosition(),
+                                                  Axis(0, 0, 1) * bsWheelPose);
+        bodyBackWheelJoint->init(odeHandle, osgHandle);
+        joints.push_back(bodyBackWheelJoint);
+	  }
 	}
 
 

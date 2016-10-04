@@ -35,8 +35,8 @@ BasicController::BasicController(const std::string& name, const lpzrobots::OdeCo
   time = 0;
 
   /** initialization of membrane potential */
-  x_l=-2; 
-  x_r=3;
+  x_l=0.; 
+  x_r=0.;
 
   addParameterDef("a", &a, 2, "mode 0 & 4; slope of sigmoidal function");
   addParameterDef("b", &b, 0, "mode 0 & 4; threshold of sigmoidal function");

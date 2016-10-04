@@ -80,7 +80,8 @@ class ThisSim : public Simulation
       conf.bodyRadius         = 1.; 
       conf.bodyHeight         = .5; 
       conf.bodyMass           = 1.; 
-      conf.supportWheels      = false; 
+      conf.supportWheels      = true; 
+	  conf.sphericalSupportWheels 		= true;
       conf.sWheelMass         = 0.00001;
 
 	  OdeHandle robHandle = odeHandle;
@@ -133,11 +134,11 @@ class ThisSim : public Simulation
     	RandomObstacles* RandObstacle = new RandomObstacles(wallHandle, osgHandle, randConf);
     	/** Generation an placing Objects */
     	if(randObstacles == true){
-    	    int num_randObs = 4;
-    	    for (int i=0; i< num_randObs; i++){
-    	        RandObstacle->spawn(RandomObstacles::Box, RandomObstacles::Foam);
-    	        global.obstacles.push_back( RandObstacle );
-    	    }
+          int num_randObs = 4;
+          for (int i=0; i< num_randObs; i++){
+             RandObstacle->spawn(RandomObstacles::Box, RandomObstacles::Foam);
+             global.obstacles.push_back( RandObstacle );
+          }
     	}
 	  }
 	  /*** End ENVIRONMENT ***/

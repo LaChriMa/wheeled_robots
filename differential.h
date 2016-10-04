@@ -47,6 +47,7 @@ namespace lpzrobots{
 	double initWheelOrientation;
 	bool supportWheels;
     double sWheelMass;       
+	bool sphericalSupportWheels;
   } DifferentialConf;
 
   /**
@@ -77,8 +78,9 @@ namespace lpzrobots{
        conf.wheelHeight        = .1;
        conf.wheelMass          = 5.;
 	   conf.initWheelOrientation = 0;//M_PI/4.0;
-	   conf.supportWheels = false;
+	   conf.supportWheels 		= false;
        conf.sWheelMass          = 0.00001;
+	   conf.sphericalSupportWheels 		= false;
        return conf;
      }
 
