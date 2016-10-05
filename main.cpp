@@ -37,6 +37,14 @@
 
 #include <selforg/agent.h>
 
+// Four-wheeled cars
+#include <ode_robots/nimm4.h>
+#include "nimm4angle.h"
+#include "controller4wheeled.h"
+#include "carchain.h"
+#include <ode_robots/fourwheeled.h>
+
+
 #include <string>
 
 using namespace lpzrobots;
@@ -72,34 +80,71 @@ class ThisSim : public Simulation
 
 
 	  /**** WHEELED ROBOT ****/
-   	  DifferentialConf conf = Differential::getDefaultConf();
-   	  conf.wheelMass 		  = .5;
-      conf.wheelRadius 		  = .3;
-      conf.wheelHeight        = .1; 
-      conf.initWheelOrientation = 0.; //M_PI/2.; //M_PI/4.0;
-      conf.bodyRadius         = 1.; 
-      conf.bodyHeight         = .5; 
-      conf.bodyMass           = 1.; 
-      conf.supportWheels      = true; 
-	  conf.sphericalSupportWheels 		= true;
-      conf.sWheelMass         = 0.00001;
-
-	  OdeHandle robHandle = odeHandle;
-	  //robHandle.substance.toRubber(5);
-   	  auto robot = new Differential(robHandle, osgHandle, conf, "Two wheeled robot");
-   	  robot->addSensor(std::make_shared<SpeedSensor>(1), Attachment(-1));
+   	  //DifferentialConf conf = Differential::getDefaultConf();
+   	  //conf.wheelMass 		  = .5;
+      //conf.wheelRadius 		  = .3;
+      //conf.wheelHeight        = .1; 
+      //conf.initWheelOrientation = 0.; //M_PI/2.; //M_PI/4.0;
+      //conf.bodyRadius         = 1.; 
+      //conf.bodyHeight         = .5; 
+      //conf.bodyMass           = 1.; 
+      //conf.supportWheels      = true; 
+	  //conf.sphericalSupportWheels 		= true;
+      //conf.sWheelMass         = 0.00001;
+	  //OdeHandle robHandle = odeHandle;
+	  ////robHandle.substance.toRubber(5);
+   	  //auto robot = new Differential(robHandle, osgHandle, conf, "Two wheeled robot");
+   	  //robot->addSensor(std::make_shared<SpeedSensor>(1), Attachment(-1));
+   	  //robot->place(Pos(0, 0, 0));
+   	  //auto controller = new BasicController("Basic Controller", global.odeConfig);
+   	  //auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
+   	  ////auto agent = new OdeAgent( PlotOption(File) );  /** set the frequency for writing in the log-file*/
+   	  //auto agent = new OdeAgent(global);
+   	  //agent->init(controller, robot, wiring);
+   	  //global.agents.push_back(agent);
+   	  //global.configs.push_back(agent);
+	  /**** END WHEELED ROBOT ****/
+	  
+      /*** CAR CHAIN ****/
+      CarChainConf conf = CarChain::getDefaultConf();
+      conf.carDistance = 2.5;
+      conf.carNumber = 6;
+      auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
    	  robot->place(Pos(0, 0, 0));
-
    	  auto controller = new BasicController("Basic Controller", global.odeConfig);
    	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
-   	  //auto agent = new OdeAgent( PlotOption(File) );  /** set the frequency for writing in the log-file*/
    	  auto agent = new OdeAgent(global);
-
    	  agent->init(controller, robot, wiring);
    	  global.agents.push_back(agent);
    	  global.configs.push_back(agent);
-	  /**** END WHEELED ROBOT ****/
-		  
+	  /*** END CAR CHAIN ****/
+
+
+      /**** FOUR WHEELED ROBOTS ****/
+      //auto N4robot = new Nimm4Angle( odeHandle, osgHandle, "Nimm4Angle");
+      //N4robot->place( Pos(0,2,0) );
+      //auto N4controller = new Cont4Wheels("Nimm4Controller", global.odeConfig);
+      //N4controller->init(4,4);
+      //auto N4wiring = new One2OneWiring( new ColorUniformNoise(.1));
+      //auto N4agent = new OdeAgent(global);
+      //N4agent->init( N4controller, N4robot, N4wiring );
+      //global.agents.push_back(N4agent);
+      //global.configs.push_back(N4agent);
+      /**** END FOUR WHEELED ROBOTS ****/
+
+      /**** FOUR WHEELED ROBOTS ****/
+      //FourWheeledConf FWconf = FourWheeled::getDefaultConf();
+      //auto Zrobot = new FourWheeled( odeHandle, osgHandle, FWconf, "FourWheeled");
+      //Zrobot->place(Pos(2,0,0));
+      //// controller noch nicht angepasst
+      //auto Zcontroller = new BasicController("Z:4 Wheeled Controller", global.odeConfig);
+      //auto Zwiring = new One2OneWiring( new ColorUniformNoise(.1));
+      //auto Zagent = new OdeAgent(global);
+      //Zagent->init(Zcontroller, Zrobot, Zwiring);
+      //global.agents.push_back(Zagent);
+      //global.configs.push_back(Zagent);
+      /**** END FOUR WHEELED ROBOTS ****/
+
 
 	  /*** ENVIRONMENT ***/
 	  if( env == "wall" )
