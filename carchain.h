@@ -33,6 +33,8 @@
 #include <ode_robots/raysensorbank.h>
 #include <ode_robots/irsensor.h>
 
+#include <vector>
+
 // Using name space lpzrobots
 namespace lpzrobots{
 
@@ -48,8 +50,9 @@ namespace lpzrobots{
     double wheelMass;           // Mass of the wheel
 	double initWheelOrientation;
 	bool supportWheels;         
-    double sWheelMass;       
-	bool sphericalSupportWheels;
+    double supWheelMass;       
+    double supWheelRadius;
+    double supWheelAnchor;
   } CarChainConf;
 
   /**
@@ -84,9 +87,10 @@ namespace lpzrobots{
        conf.wheelHeight        = .1;
        conf.wheelMass          = 5.;
 	   conf.initWheelOrientation = 0;//M_PI/4.0;
-	   conf.supportWheels 		= false;
-       conf.sWheelMass          = 0.00001;
-	   conf.sphericalSupportWheels 		= false;
+	   conf.supportWheels      = false;
+       conf.supWheelMass       = 0.00001;
+       conf.supWheelRadius     = conf.wheelRadius/4.;
+       conf.supWheelAnchor     = -conf.wheelRadius+conf.supWheelRadius;
        return conf;
      }
 
@@ -117,7 +121,8 @@ namespace lpzrobots{
      int sensorNo;
      int motorNo;
 	 double motorVel;
-
+    
+     std::vector<OdeHandle> spaces;
   };
 
 

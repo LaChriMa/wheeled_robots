@@ -107,8 +107,9 @@ class ThisSim : public Simulation
 	  
       /*** CAR CHAIN ****/
       CarChainConf conf = CarChain::getDefaultConf();
-      conf.carDistance = 2.5;
-      conf.carNumber = 6;
+      conf.carDistance   = 2.5;
+      conf.carNumber     = 3;
+      conf.supportWheels = true;
       auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
    	  robot->place(Pos(0, 0, 0));
    	  auto controller = new BasicController("Basic Controller", global.odeConfig);
