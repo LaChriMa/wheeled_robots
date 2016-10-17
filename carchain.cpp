@@ -119,15 +119,18 @@ namespace lpzrobots{
     carJoints.resize( conf.carNumber-1 );
    
     /*******************
-    N = parts per car    i=0 to i<conf.carNumber
+    N = parts per car    i=0 to i<conf.carNumber  CA= carNumber
     objects[N*i]         -  bodies
     objects[N*i+1]       -  left wheels
     objects[N*i+2]       -  right wheels
     evtl. objects[N*i+3] -  support wheels front
     evtl. objects[N*i+4] -  support wheels back
-    joints[N*i]    -  left wheel joint
-    joints[N*i+1]  -  right wheel joint
-    from joints[2*conf.carNumber]  to joints[2*conf.carNumber + conf.carNumber-1]   joints between cars
+    joints[N*i]          -  left wheel joint
+    joints[N*i+1]        -  right wheel joint
+    evtl. joints[N*i+2]  -  support wheel joint front
+    evtl. joints[N*i+3]  -  support wheel joint back
+    joints[(2o4)*CA + i] -  joints between cars
+    joints[(2o4)*CA + CA-1] 
     */
 
     for( int i=0; i<conf.carNumber; i++) {

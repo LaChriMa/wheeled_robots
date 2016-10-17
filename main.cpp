@@ -111,6 +111,7 @@ class ThisSim : public Simulation
       conf.carNumber     = 3;
       conf.speedSensors  = true;
       conf.supportWheels = true;
+      conf.springConst   = 30;
       auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
    	  robot->place(Pos(0, 0, 0));
    	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);
