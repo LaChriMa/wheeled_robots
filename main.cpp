@@ -40,7 +40,7 @@
 // Four-wheeled cars
 #include <ode_robots/nimm4.h>
 #include "nimm4angle.h"
-#include "controller4wheeled.h"
+#include "couplingrodneuron.h"
 #include "carchain.h"
 #include <ode_robots/fourwheeled.h>
 
@@ -109,15 +109,20 @@ class ThisSim : public Simulation
       CarChainConf conf = CarChain::getDefaultConf();
       conf.carDistance   = 2.5;
       conf.carNumber     = 3;
+      conf.speedSensors  = true;
       conf.supportWheels = true;
       auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
    	  robot->place(Pos(0, 0, 0));
-   	  auto controller = new BasicController("Basic Controller", global.odeConfig);
+   	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);
    	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
    	  auto agent = new OdeAgent(global);
    	  agent->init(controller, robot, wiring);
    	  global.agents.push_back(agent);
    	  global.configs.push_back(agent);
+      TrackRobot* TrackOpt = new TrackRobot(false,false,false,true);
+      TrackOpt->conf.displayTraceDur = 1000;
+      TrackOpt->conf.displayTraceThickness = 0.;
+      agent->setTrackOptions( *TrackOpt );
 	  /*** END CAR CHAIN ****/
 
 
@@ -207,11 +212,12 @@ class ThisSim : public Simulation
 		OdeRobot* rob = globalData.agents[0]->getRobot();
 		switch( (char) key)
 	 	{ 
-		  case 'j': dBodyAddForce( rob->getMainPrimitive()->getBody(), 100, 0, 0); break;
-		  case 'J': dBodyAddForce( rob->getMainPrimitive()->getBody(), -100, 0, 0); break;
-		  case 'k': dBodyAddForce( rob->getMainPrimitive()->getBody(), 0, 100, 0); break;
-		  case 'K': dBodyAddForce( rob->getMainPrimitive()->getBody(), 0, -100, 0); break;
-		  case 'l': dBodyAddTorque( rob->getMainPrimitive()->getBody(), 0, 0, 220); break;
+		  case 'j': dBodyAddForce( rob->getMainPrimitive()->getBody(), 200, 0, 0); break;
+		  case 'J': dBodyAddForce( rob->getMainPrimitive()->getBody(), -200, 0, 0); break;
+		  case 'k': dBodyAddForce( rob->getMainPrimitive()->getBody(), 0, 200, 0); break;
+		  case 'K': dBodyAddForce( rob->getMainPrimitive()->getBody(), 0, -200, 0); break;
+		  case 'l': dBodyAddTorque( rob->getMainPrimitive()->getBody(), 0, 0, 250); break;
+		  case 'L': dBodyAddTorque( rob->getMainPrimitive()->getBody(), 0, 0, -250); break;
 	 	}
 	  }
       return false;

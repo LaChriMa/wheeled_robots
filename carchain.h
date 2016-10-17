@@ -53,6 +53,9 @@ namespace lpzrobots{
     double supWheelMass;       
     double supWheelRadius;
     double supWheelAnchor;
+    bool speedSensors;
+    bool spring;
+    double springConst;
   } CarChainConf;
 
   /**
@@ -91,6 +94,9 @@ namespace lpzrobots{
        conf.supWheelMass       = 0.00001;
        conf.supWheelRadius     = conf.wheelRadius/4.;
        conf.supWheelAnchor     = -conf.wheelRadius+conf.supWheelRadius;
+       conf.speedSensors       = false;
+       conf.spring             = true;
+       conf.springConst        = 0;
        return conf;
      }
 
