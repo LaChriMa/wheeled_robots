@@ -54,8 +54,8 @@ namespace lpzrobots{
     double supWheelRadius;
     double supWheelAnchor;
     bool speedSensors;
-    bool spring;
     double springConst;
+    double springDamp;
   } CarChainConf;
 
   /**
@@ -81,22 +81,28 @@ namespace lpzrobots{
       */
      static CarChainConf getDefaultConf(){
        CarChainConf conf;
-       conf.carNumber          = 2;
-       conf.carDistance        = 2.5;
-       conf.bodyRadius         = 1.;
-       conf.bodyHeight         = .5;
+
+       conf.bodyRadius         = 0.1;
+       conf.bodyHeight         = 0.05;
        conf.bodyMass           = 1.;
-       conf.wheelRadius        = .3;
-       conf.wheelHeight        = .1;
-       conf.wheelMass          = 5.;
+
+       conf.wheelRadius        = 0.03;
+       conf.wheelHeight        = 0.01;
+       conf.wheelMass          = 0.5;
+
 	   conf.initWheelOrientation = 0;//M_PI/4.0;
-	   conf.supportWheels      = false;
+
+	   conf.supportWheels      = true;
        conf.supWheelMass       = 0.00001;
        conf.supWheelRadius     = conf.wheelRadius/4.;
        conf.supWheelAnchor     = -conf.wheelRadius+conf.supWheelRadius;
-       conf.speedSensors       = false;
-       conf.spring             = true;
-       conf.springConst        = 0;
+
+       conf.carNumber          = 5;
+       conf.carDistance        = 2.2;   /* will later be multiplied by bodyRadius */
+       conf.springConst        = 10.;
+       conf.springDamp         = 2.;
+
+       conf.speedSensors       = true;
        return conf;
      }
 
@@ -126,9 +132,11 @@ namespace lpzrobots{
 	private:
      int sensorNo;
      int motorNo;
-	 double motorVel;
-    
+     
+     std::vector<double> carAngle;
+
      std::vector<OdeHandle> spaces;
+     double stepsize;
   };
 
 

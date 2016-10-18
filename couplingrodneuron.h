@@ -81,7 +81,7 @@ class CouplingRod : public AbstractController{
 
 	/** sigmoidal transfer function with phase shift: x=cos(phi+dp)
 	*/
-	double y(double phi, double deltaPhi);	
+	//double y(double phi, double deltaPhi);	
 
 
   protected:
@@ -96,13 +96,13 @@ class CouplingRod : public AbstractController{
 	/** sigmoidal */
 	double a;
 	double b;
-	double delPhi;
+	//double delPhi;
     /** coupling rod */
 	double k;
-	int mode;
+	//int mode;
 	
 	/** sinus */
-	double frequ;
+	//double frequ;
 	
 
     struct Neuron {

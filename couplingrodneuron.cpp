@@ -36,11 +36,11 @@ double CouplingRod::couplingRod(double x_tar, double phi)
   return k * sin(phi) * ( x_tar - cos(phi) );
 }
 
-double CouplingRod::y(double phi, double deltaPhi)
-{ // sigmoidal funcion,  where x=cos(phi-dphi)
-  double x = cos(phi-deltaPhi);
-  return 1./( 1.+exp( a*(b-x) ) );
-}
+//double CouplingRod::y(double phi, double deltaPhi)
+//{ // sigmoidal funcion,  where x=cos(phi-dphi)
+//  double x = cos(phi-deltaPhi);
+//  return 1./( 1.+exp( a*(b-x) ) );
+//}
 
 double CouplingRod::y(double x)
 { // sigmoidal funcion  
@@ -52,41 +52,42 @@ double CouplingRod::y(double x)
 void CouplingRod::stepNoLearning(const sensor* sensors, int number_sensors,
                                      motor* motors, int number_motors)
 {
-  if( mode==0 ) /** transfer function with phase shift */
-  { 
-    for( int i=0; i<number_motors; i++) {
-        N[i].y = y( sensors[i], delPhi );
-        N[i].x_act = cos(sensors[i]);
-        N[i].x_tar = 2.*N[i].y-1.;
-        motors[i] = couplingRod( N[i].x_tar, sensors[i] );
-     }
-  }
-  else if( mode==1 ) /** simple sinus, no sensorimotor loop */
-  {
-    for( int i=0; i<number_motors; i++) {
-        N[i].x_act = cos(sensors[i]);
-        N[i].x_tar = 0.8 *sin(2*M_PI*frequ*time);
+  //if( mode==0 ) /** transfer function with phase shift */
+  //{ 
+  //  for( int i=0; i<number_motors; i++) {
+  //      N[i].y = y( sensors[i], delPhi );
+  //      N[i].x_act = cos(sensors[i]);
+  //      N[i].x_tar = 2.*N[i].y-1.;
+  //      motors[i] = couplingRod( N[i].x_tar, sensors[i] );
+  //   }
+  //}
+  //else if( mode==1 ) /** simple sinus, no sensorimotor loop */
+  //{
+  //  for( int i=0; i<number_motors; i++) {
+  //      N[i].x_act = cos(sensors[i]);
+  //      N[i].x_tar = 0.8 *sin(2*M_PI*frequ*time);
 
-        motors[i] = couplingRod( N[i].x_tar, sensors[i] );
+  //      motors[i] = couplingRod( N[i].x_tar, sensors[i] );
+  //  }
+  //}
+  //else if( mode==2 ) /** simple torque to the wheels */
+  //{
+  //  motors[0] = 1.;
+  //  motors[1] = 0;
+  //  motors[2] = 1.;
+  //  motors[3] = 1.;
+  //}
+  //else if( mode==4 ) /** sensorimotor loop with membrane potential */
+  //{  
+    for( int i=0; i<number_motors; i++) 
+    {
+        N[i].x_act  =   cos(sensors[i]);
+        N[i].x     +=   N[i].gamma *( N[i].x_act - N[i].x ) *stepSize;
+        N[i].y      =   y(N[i].x);
+        N[i].x_tar  =   2. *N[i].y -1.;
+        motors[i]   =   couplingRod( N[i].x_tar, sensors[i] );
     }
-  }
-  else if( mode==2 ) /** simple torque to the wheels */
-  {
-    motors[0] = 1.;
-    motors[1] = 0;
-    motors[2] = 1.;
-    motors[3] = 1.;
-  }
-  else if( mode==4 ) /** sensorimotor loop with membrane potential */
-  {  
-    for( int i=0; i<number_motors; i++) {
-        N[i].x_act = cos(sensors[i]);
-        N[i].x += N[i].gamma*( N[i].x_act - N[i].x )*stepSize;
-        N[i].y = y( N[i].x );
-        N[i].x_tar = 2.*N[i].y-1.;
-        motors[i] = couplingRod( N[i].x_tar, sensors[i] );
-    }
-  }
+ // }
   
   time += stepSize;
 }
@@ -97,7 +98,7 @@ void CouplingRod::step(const sensor* sensors, int sensornumber,
   // counter for time
   double old_stepSize = stepSize;
   stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
-  if( old_stepSize != stepSize) cout << " STEPSIZE OF CONTROLLER = " << stepSize << endl;
+  if( old_stepSize != stepSize) cout << " Controller internal stepsize = " << stepSize << endl;
   // generating motor values
   stepNoLearning(sensors,sensornumber, motors, motornumber);
 
@@ -115,9 +116,9 @@ void CouplingRod::init(int sensornumber, int motornumber, RandGen* randGen) {
   addParameterDef("a", &a, 2, "mode 0 & 4; slope of sigmoidal function");
   addParameterDef("b", &b, 0, "mode 0 & 4; threshold of sigmoidal function");
   addParameterDef("k", &k, 2, "all modes; spring constant");
-  addParameterDef("mode", &mode, 4, "0: sigmoidal; 1: sinus; 2: speed-up; 4: membrane");
-  addParameterDef("frequency", &frequ, 0.5, "mode 1; rotational frequency in [1/s] of the driving force");
-  addParameterDef("phaseShift", &delPhi, 0, "mode 0; phase shift x=cos(phi-delPhi) in y( phi )");
+  //addParameterDef("mode", &mode, 4, "0: sigmoidal; 1: sinus; 2: speed-up; 4: membrane");
+  //addParameterDef("frequency", &frequ, 0.5, "mode 1; rotational frequency in [1/s] of the driving force");
+  //addParameterDef("phaseShift", &delPhi, 0, "mode 0; phase shift x=cos(phi-delPhi) in y( phi )");
   
   N.resize( nMotors ); 
 
@@ -125,7 +126,7 @@ void CouplingRod::init(int sensornumber, int motornumber, RandGen* randGen) {
   cout << "nNeurons =  nMotors: " << nMotors << "   and nSensors: "<< nSensors << "   and stepsize: " << stepSize << endl;
 
   for( int i=0; i<nMotors; i++) {
-     addParameterDef("n"+itos(i)+":gamma", &N[i].gamma, 2., "mode 4; decay constant of membrane potential");
+     addParameterDef("n"+itos(i)+":gamma", &N[i].gamma, 20., "mode 4; decay constant of membrane potential");
      N[i].x=0.;
      addInspectableValue("n"+itos(i)+":x_act", &N[i].x_act,  "actual position of left x between [-1,1]");
      addInspectableValue("n"+itos(i)+":x_tar", &N[i].x_tar,  "target position of left x between [-1,1]");
