@@ -82,13 +82,13 @@ namespace lpzrobots{
      static CarChainConf getDefaultConf(){
        CarChainConf conf;
 
-       conf.bodyRadius         = 0.1;
-       conf.bodyHeight         = 0.05;
+       conf.bodyRadius         = 0.08;
+       conf.bodyHeight         = 0.06;
        conf.bodyMass           = 1.;
 
-       conf.wheelRadius        = 0.03;
+       conf.wheelRadius        = 0.04;
        conf.wheelHeight        = 0.01;
-       conf.wheelMass          = 0.5;
+       conf.wheelMass          = 0.1;
 
 	   conf.initWheelOrientation = 0;//M_PI/4.0;
 

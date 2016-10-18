@@ -108,12 +108,13 @@ class ThisSim : public Simulation
 	  
       /*** CAR CHAIN ****/
       CarChainConf conf = CarChain::getDefaultConf();
-      conf.carNumber     = 3;
+      conf.carNumber     = 5;
       auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
    	  robot->place(Pos(0, 0, 0));
    	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);
    	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
    	  auto agent = new OdeAgent(global);
+   	  //auto agent = new OdeAgent( PlotOption(File) );
    	  agent->init(controller, robot, wiring);
    	  global.agents.push_back(agent);
    	  global.configs.push_back(agent);

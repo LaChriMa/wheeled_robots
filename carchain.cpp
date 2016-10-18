@@ -114,7 +114,7 @@ namespace lpzrobots{
     { /* spring force */
       double angle_new = dynamic_cast<UniversalJoint*>(joints[j])->getPosition1();
       double springForce = -conf.springConst*angle_new  -conf.springDamp*(angle_new - carAngle[n])/stepsize;
-      dynamic_cast<UniversalJoint*>(joints[j])->addForce1(springForce;
+      dynamic_cast<UniversalJoint*>(joints[j])->addForce1(springForce);
       carAngle[n] = angle_new;
       n++;
     }
