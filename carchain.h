@@ -99,8 +99,8 @@ namespace lpzrobots{
 
        conf.carNumber          = 5;
        conf.carDistance        = 2.2;   /* will later be multiplied by bodyRadius */
-       conf.springConst        = 10.;
-       conf.springDamp         = 2.;
+       conf.springConst        = 1.;
+       conf.springDamp         = 0.02;
 
        conf.speedSensors       = true;
        return conf;
