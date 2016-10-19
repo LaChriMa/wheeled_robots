@@ -168,7 +168,8 @@ namespace lpzrobots{
         /** Creating body */
         bodies[i] = new Cylinder( conf.bodyRadius, conf.bodyHeight );
         //bodies[i]->setTexture("Images/chess.rgb");
-        bodies[i]->init( spaces[i], conf.bodyMass, osgHandle.changeColor(Color(1,1.2,0)) );
+        bodies[i]->init( spaces[i], conf.bodyMass, i!=0 ? osgHandle.changeColor(Color(1,1.2,0)) : 
+                                                          osgHandle.changeColor(Color(1.6,0.8,0)) );
         Matrix bodyPos = Matrix::translate(0,-i*conf.carDistance*conf.bodyRadius,0)*pose;
         bodies[i]->setPose( bodyPos );
         objects.push_back(bodies[i]);
