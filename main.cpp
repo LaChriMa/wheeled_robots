@@ -108,7 +108,9 @@ class ThisSim : public Simulation
 	  
       /*** CAR CHAIN ****/
       CarChainConf conf = CarChain::getDefaultConf();
-      conf.carNumber     = 5;
+      conf.carNumber     = 4;
+      conf.supportWheels = false;
+      conf.randomInitWP  = true;
       auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
    	  robot->place(Pos(0, 0, 0));
    	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);

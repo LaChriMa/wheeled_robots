@@ -48,7 +48,7 @@ namespace lpzrobots{
     double wheelRadius;         // Radius of the cylinder defining the wheel
     double wheelHeight;         // Height of the cylinder defining the wheel
     double wheelMass;           // Mass of the wheel
-	double initWheelOrientation;
+	bool randomInitWP;
 	bool supportWheels;         
     double supWheelMass;       
     double supWheelRadius;
@@ -92,7 +92,7 @@ namespace lpzrobots{
        conf.wheelHeight        = 0.01;
        conf.wheelMass          = 0.1;
 
-	   conf.initWheelOrientation = 0;//M_PI/4.0;
+	   conf.randomInitWP       = true; //M_PI/4.0;
 
 	   conf.supportWheels      = false;
        conf.supWheelMass       = 0.00001;
@@ -139,6 +139,7 @@ namespace lpzrobots{
      
      std::vector<double> carAngleH;
      std::vector<double> carAngleV;
+     std::vector<double> InitWPos;
 
      std::vector<OdeHandle> spaces;
      double stepsize;

@@ -26,6 +26,8 @@
 #include <ode_robots/axisorientationsensor.h>
 #include <ode_robots/torquesensor.h>
 
+#include <random>
+
 // Using namespaces
 using namespace osg;
 using namespace std;
@@ -51,6 +53,19 @@ namespace lpzrobots{
     carAngleH.assign(conf.carNumber-1, 0);
     carAngleV.resize(conf.carNumber-1); 
     carAngleV.assign(conf.carNumber-1, 0);
+    /* Wheel positions at the beginning */
+    InitWPos.resize(motorNo);
+    InitWPos.assign(motorNo, 0.);
+    if(conf.randomInitWP) {
+      random_device rd;
+      mt19937 mt(rd());
+      uniform_real_distribution<double> distribution(0,2*M_PI); /** half open interval [0; 2*M_PI) */
+      for( int i=0; i<motorNo; i++) 
+      {
+        InitWPos[i]= distribution(mt);
+        cout << "  " << InitWPos[i] << endl;
+      }
+    }
     //TODO adaptation of the internal stepsize to the global
     stepsize = 0.001;
     addParameter("stepsizeRobot", &this->stepsize, "Internal stepsize of the robot");
@@ -83,9 +98,15 @@ namespace lpzrobots{
     int JPC = conf.supportWheels ? 4:2; /* Joints per car */
     for( int i=0; i<conf.carNumber; i++ ) 
     { /* Wheel orientation */
-       sensors[len] = dynamic_cast<HingeJoint*>(joints[JPC*i+0])->getPosition1();
+       sensors[len] = dynamic_cast<HingeJoint*>(joints[JPC*i+0])->getPosition1() + InitWPos[len];
+       //cout << " ROBOT : " << "  Left:  " << sensors[len] << "   ";
+       sensors[len] += (sensors[len]<M_PI) ? 0 : -2.0*M_PI;
+       //cout << sensors[len] << "   ";
        len++;
-       sensors[len] = dynamic_cast<HingeJoint*>(joints[JPC*i+1])->getPosition1();
+       sensors[len] = dynamic_cast<HingeJoint*>(joints[JPC*i+1])->getPosition1() + InitWPos[len];
+       //cout << "  Right: " << sensors[len] << "   ";
+       sensors[len] += (sensors[len]<M_PI) ? 0 : -2.0*M_PI;
+       //cout << sensors[len] << endl;;
        len++;
     }
     if( conf.speedSensors ) {
@@ -257,29 +278,33 @@ namespace lpzrobots{
            joints.push_back( supWheelJoints[2*i+1] );
         }
     }
+    /** The Universal Joints are so far best choice to connect the cars.
+      * One can add seperate torques on to axes. 
+      * By confining the maximal angles we prevent from internal collisions
+      */
     enum JType  {BallJ, Hinge2J, UniversalJ};
     JType cj = UniversalJ;
     switch (cj){
       case BallJ:
-        for( int i=0; i<conf.carNumber-1; i++) {
-            /** Creating joints between cars */
-            Vec3 jointPos = Vec3(0., -conf.carDistance/2.-i*conf.carDistance*conf.bodyRadius, 0.)*pose;
-            carJoints[i] = new BallJoint( bodies[i], bodies[i+1], jointPos );
-            carJoints[i]->init( odeHandle, osgHandle, true, conf.bodyHeight/2.);
-            joints.push_back( carJoints[i] );
-        }
+        //for( int i=0; i<conf.carNumber-1; i++) {
+        //    /** Creating joints between cars */
+        //    Vec3 jointPos = Vec3(0., -conf.carDistance/2.-i*conf.carDistance*conf.bodyRadius, 0.)*pose;
+        //    carJoints[i] = new BallJoint( bodies[i], bodies[i+1], jointPos );
+        //    carJoints[i]->init( odeHandle, osgHandle, true, conf.bodyHeight/2.);
+        //    joints.push_back( carJoints[i] );
+        //}
         break;
       case Hinge2J:
-        for( int i=0; i<conf.carNumber-1; i++) {
-            /** Creating joints between cars */
-            Vec3 jointPos = Vec3(0., -conf.carDistance/2.-i*conf.carDistance*conf.bodyRadius, 0.)*pose;
-            Matrix jP = Matrix::translate( Vec3(0., -conf.carDistance/2.-i*conf.carDistance*conf.bodyRadius, 0.)) *pose;
-            carJoints[i] = new Hinge2Joint( bodies[i], bodies[i+1], jointPos, Axis(0,0,1)*jP, Axis(1,0,0)*jP );
-            carJoints[i]->init( odeHandle, osgHandle, true, conf.bodyHeight/2.);
-            carJoints[i]->setParam(dParamLoStop, -0.5);
-            carJoints[i]->setParam(dParamHiStop, 0.5);
-            joints.push_back( carJoints[i] );
-        }
+        //for( int i=0; i<conf.carNumber-1; i++) {
+        //    /** Creating joints between cars */
+        //    Vec3 jointPos = Vec3(0., -conf.carDistance/2.-i*conf.carDistance*conf.bodyRadius, 0.)*pose;
+        //    Matrix jP = Matrix::translate( Vec3(0., -conf.carDistance/2.-i*conf.carDistance*conf.bodyRadius, 0.)) *pose;
+        //    carJoints[i] = new Hinge2Joint( bodies[i], bodies[i+1], jointPos, Axis(0,0,1)*jP, Axis(1,0,0)*jP );
+        //    carJoints[i]->init( odeHandle, osgHandle, true, conf.bodyHeight/2.);
+        //    carJoints[i]->setParam(dParamLoStop, -0.5);
+        //    carJoints[i]->setParam(dParamHiStop, 0.5);
+        //    joints.push_back( carJoints[i] );
+        //}
         break;
       case UniversalJ:
         for( int i=0; i<conf.carNumber-1; i++) {
@@ -290,8 +315,8 @@ namespace lpzrobots{
             Matrix jP = Matrix::translate( Vec3(0., -(i+0.5)*conf.carDistance*conf.bodyRadius, conf.wheelRadius));
             carJoints[i] = new UniversalJoint( bodies[i], bodies[i+1], jointPos, Axis(0,0,1)*jP, Axis(1,0,0)*jP );
             carJoints[i]->init( odeHandle, osgHandle, true, conf.bodyHeight/1.5);
-            carJoints[i]->setParam(dParamLoStop, -0.5*M_PI);
-            carJoints[i]->setParam(dParamHiStop, 0.5*M_PI);
+            carJoints[i]->setParam(dParamLoStop, /*-0.25*M_PI*/ -0.8);
+            carJoints[i]->setParam(dParamHiStop, /*0.25*M_PI*/   0.8);
             joints.push_back( carJoints[i] );
         }
         break;
