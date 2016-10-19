@@ -36,18 +36,30 @@ namespace lpzrobots{
     : OdeRobot(odeHandle, osgHandle, name, "2.0"), conf(conf) {
    
     motorNo = 2*conf.carNumber;  /** each car has two wheels */
-    sensorNo = (conf.speedSensors ? 2 : 1) * motorNo + conf.carNumber-1; /** each wheel has an angle and an angular velocity sensor */
+    /* Number of sensors: 
+     * Angle for each wheel                 ~ motorNo
+     * opt. Angular velocity                ~ motorNo           if speedSensors
+     * Angles between the cars horizontal   ~ carNumber-1
+     * opt. Angles vertical                 ~ carNumber-1       if no supportWheels
+     */
+    sensorNo = (conf.speedSensors ? 2 : 1) * motorNo + ( conf.supportWheels ? 1:2)*(conf.carNumber-1);
 
     cout << "########" << endl << "Variables of the CarChain: " << endl;
     cout << "motorNo: " << motorNo << "   and sensorNo: " << sensorNo << endl;
     /* storage for orientations of the cars, if all 0 they are on a straight line */
-    carAngle.resize(conf.carNumber-1); 
-    carAngle.assign(conf.carNumber-1, 0);
+    carAngleH.resize(conf.carNumber-1); 
+    carAngleH.assign(conf.carNumber-1, 0);
+    carAngleV.resize(conf.carNumber-1); 
+    carAngleV.assign(conf.carNumber-1, 0);
     //TODO adaptation of the internal stepsize to the global
     stepsize = 0.001;
     addParameter("stepsizeRobot", &this->stepsize, "Internal stepsize of the robot");
-    addParameter("damping", &this->conf.springDamp, "Damping of the springs linking the cars");
-    addParameter("springconstant", &this->conf.springConst, "Spring constant of the links between the cars");
+    addParameter("dampingHorizontal", &this->conf.spD1, "Damping of the springs linking the cars");
+    addParameter("springHorizontal", &this->conf.spC1, "Spring constant of the links between the cars");
+    if( !conf.supportWheels ) {
+      addParameter("dampingVertical", &this->conf.spD2, "Damping of the springs linking the cars");
+      addParameter("springVertical", &this->conf.spC2, "Spring constant of the links between the cars");
+    }
   }
 
 
@@ -86,10 +98,17 @@ namespace lpzrobots{
       }
     }
     for( int i=0; i<conf.carNumber-1; i++)
-    {  /** Angles between cars */
-       sensors[len] =carAngle[i];    
+    {  /** Horizontal angles between cars */
+       sensors[len] =carAngleH[i];    
        len++;
-    }    
+    }
+    if( !conf.supportWheels ) {
+      for( int i=0; i<conf.carNumber-1; i++)
+      {  /** Vertical angles between cars */
+         sensors[len] =carAngleV[i];    
+         len++;
+      }    
+    }
 	return len;
   }
 
@@ -111,12 +130,23 @@ namespace lpzrobots{
     }
     int n=0;
     for( int j=JPC*conf.carNumber; j<conf.carNumber*(JPC+1)-1; j++) 
-    { /* spring force */
+    { /* spring force for horizontal car angles */
       double angle_new = dynamic_cast<UniversalJoint*>(joints[j])->getPosition1();
-      double springForce = -conf.springConst*angle_new  -conf.springDamp*(angle_new - carAngle[n])/stepsize;
+      double springForce = -conf.spC1*angle_new  -conf.spD1*(angle_new - carAngleH[n])/stepsize;
       dynamic_cast<UniversalJoint*>(joints[j])->addForce1(springForce);
-      carAngle[n] = angle_new;
+      carAngleH[n] = angle_new;
       n++;
+    }
+    if( !conf.supportWheels ) {
+      int n=0;
+      for( int j=JPC*conf.carNumber; j<conf.carNumber*(JPC+1)-1; j++) 
+      { /* spring force for vertical car angles*/
+        double angle_new = dynamic_cast<UniversalJoint*>(joints[j])->getPosition2();
+        double springForce = -conf.spC2*angle_new  -conf.spD1*(angle_new - carAngleV[n])/stepsize;
+        dynamic_cast<UniversalJoint*>(joints[j])->addForce2(springForce);
+        carAngleV[n] = angle_new;
+        n++;
+      }
     }
   }
 
@@ -260,8 +290,8 @@ namespace lpzrobots{
             Matrix jP = Matrix::translate( Vec3(0., -(i+0.5)*conf.carDistance*conf.bodyRadius, conf.wheelRadius));
             carJoints[i] = new UniversalJoint( bodies[i], bodies[i+1], jointPos, Axis(0,0,1)*jP, Axis(1,0,0)*jP );
             carJoints[i]->init( odeHandle, osgHandle, true, conf.bodyHeight/1.5);
-            carJoints[i]->setParam(dParamLoStop, -0.8);
-            carJoints[i]->setParam(dParamHiStop, 0.8);
+            carJoints[i]->setParam(dParamLoStop, -0.5*M_PI);
+            carJoints[i]->setParam(dParamHiStop, 0.5*M_PI);
             joints.push_back( carJoints[i] );
         }
         break;
