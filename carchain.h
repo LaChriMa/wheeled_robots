@@ -101,10 +101,10 @@ namespace lpzrobots{
 
        conf.carNumber          = 5;
        conf.carDistance        = 2.2;   /* will later be multiplied by bodyRadius */
-       conf.spC1        = 1.;
-       conf.spC2        = 1.;
-       conf.spD1         = 0.02;
-       conf.spD2         = 0.02;
+       conf.spC1               = 0.; //1.;
+       conf.spC2               = 0.; //1.;
+       conf.spD1               = 0.; //0.02;
+       conf.spD2               = 0.; //0.02;
 
        conf.speedSensors       = true;
        return conf;

@@ -99,14 +99,10 @@ namespace lpzrobots{
     for( int i=0; i<conf.carNumber; i++ ) 
     { /* Wheel orientation */
        sensors[len] = dynamic_cast<HingeJoint*>(joints[JPC*i+0])->getPosition1() + InitWPos[len];
-       //cout << " ROBOT : " << "  Left:  " << sensors[len] << "   ";
        sensors[len] += (sensors[len]<M_PI) ? 0 : -2.0*M_PI;
-       //cout << sensors[len] << "   ";
        len++;
        sensors[len] = dynamic_cast<HingeJoint*>(joints[JPC*i+1])->getPosition1() + InitWPos[len];
-       //cout << "  Right: " << sensors[len] << "   ";
        sensors[len] += (sensors[len]<M_PI) ? 0 : -2.0*M_PI;
-       //cout << sensors[len] << endl;;
        len++;
     }
     if( conf.speedSensors ) {
@@ -173,24 +169,22 @@ namespace lpzrobots{
 
 
   void CarChain::create(const Matrix& pose) {
+
     /** Creating new space for the chain with inside collision of all elements */
-    //odeHandle.createNewSimpleSpace(parentspace, false);
-    odeHandle.createNewHashSpace(parentspace, false);
+    odeHandle.createNewSimpleSpace(parentspace, false);
+    //odeHandle.createNewHashSpace(parentspace, false);
     spaces.resize( conf.carNumber );
 
     vector<Cylinder*> bodies;        /** bodies for the cars */
     bodies.resize( conf.carNumber );
-
     vector<Cylinder*> wheels;        /** wheels of the cars */
     wheels.resize( 2*conf.carNumber );
     vector<HingeJoint*> wheelJoints; /** joints between wheels and bodies */
     wheelJoints.resize( 2*conf.carNumber );
-
     vector<Sphere*> supWheels;        /** support wheels of the cars */
     supWheels.resize( 2*conf.carNumber );
     vector<BallJoint*> supWheelJoints; /** joints between support wheels and bodies */
     supWheelJoints.resize( 2*conf.carNumber );
-
     vector<Joint*> carJoints;        /** connections between cars */
     carJoints.resize( conf.carNumber-1 );
    
@@ -212,14 +206,14 @@ namespace lpzrobots{
     for( int i=0; i<conf.carNumber; i++) {
 
         OdeHandle o(odeHandle);
-        //o.createNewSimpleSpace( odeHandle.space,true );
-        o.createNewHashSpace( odeHandle.space,true );
+        o.createNewSimpleSpace( odeHandle.space,true );
         spaces[i] = o;
-
+        OdeHandle* Space = &spaces[i];
+        //OdeHandle* Space = &odeHandle;
+        
         /** Creating body */
         bodies[i] = new Cylinder( conf.bodyRadius, conf.bodyHeight );
-        //bodies[i]->setTexture("Images/chess.rgb");
-        bodies[i]->init( spaces[i], conf.bodyMass, i!=0 ? osgHandle.changeColor(Color(1,1.2,0)) : 
+        bodies[i]->init( *Space, conf.bodyMass, i!=0 ? osgHandle.changeColor(Color(1,1.2,0)) : 
                                                           osgHandle.changeColor(Color(1.6,0.8,0)) );
         Matrix bodyPos = Matrix::translate(0,-i*conf.carDistance*conf.bodyRadius,0)*pose;
         bodies[i]->setPose( bodyPos );
@@ -228,7 +222,7 @@ namespace lpzrobots{
         /** Creating Left Wheels */
         wheels[2*i] = new Cylinder( conf.wheelRadius, conf.wheelHeight );
         wheels[2*i]->setTexture("Images/chess.rgb");
-        wheels[2*i]->init( spaces[i], conf.wheelMass, osgHandle );
+        wheels[2*i]->init( *Space, conf.wheelMass, osgHandle );
         Matrix lwPos = Matrix::rotate(M_PI/2.,0.,1.,0.)*
                        Matrix::translate( conf.bodyRadius+conf.wheelHeight/2.,0.,0.)*
                        bodyPos;
@@ -236,13 +230,13 @@ namespace lpzrobots{
         objects.push_back( wheels[2*i] );
         /** Creating Wheel Joints */
         wheelJoints[2*i] = new HingeJoint( bodies[i], wheels[2*i], wheels[2*i]->getPosition(), Axis(0,0,1)*lwPos );
-        wheelJoints[2*i]->init( spaces[i], osgHandle, false );
+        wheelJoints[2*i]->init( *Space, osgHandle, false );
         joints.push_back( wheelJoints[2*i] );
 
         /** Creating Right Wheels */
         wheels[2*i+1] = new Cylinder( conf.wheelRadius, conf.wheelHeight );
         wheels[2*i+1]->setTexture("Images/chess.rgb");
-        wheels[2*i+1]->init( spaces[i], conf.wheelMass, osgHandle );
+        wheels[2*i+1]->init( *Space, conf.wheelMass, osgHandle );
         Matrix rwPos = Matrix::rotate(M_PI/2.,0.,1.,0.)*
                        Matrix::translate( -(conf.bodyRadius+conf.wheelHeight/2.),0.,0.)*
                        bodyPos;
@@ -250,31 +244,31 @@ namespace lpzrobots{
         objects.push_back( wheels[2*i+1] );
         /** Creating Wheel Joints */
         wheelJoints[2*i+1] = new HingeJoint( bodies[i], wheels[2*i+1], wheels[2*i+1]->getPosition(), Axis(0,0,1)*rwPos );
-        wheelJoints[2*i+1]->init( spaces[i], osgHandle, false );
+        wheelJoints[2*i+1]->init( *Space, osgHandle, false );
         joints.push_back( wheelJoints[2*i+1] );
 
         if( conf.supportWheels ) {        
            /** Creating Left Support Wheels */
            supWheels[2*i] = new Sphere( conf.supWheelRadius );
-           supWheels[2*i]->init( spaces[i], conf.supWheelMass, osgHandle );
+           supWheels[2*i]->init( *Space, conf.supWheelMass, osgHandle );
            Matrix fwPos = Matrix::translate( 0., conf.bodyRadius-2.*conf.supWheelRadius, conf.supWheelAnchor )*
                           bodyPos;
            supWheels[2*i]->setPose( fwPos );
            objects.push_back( supWheels[2*i] );
            /** Creating Joints */
            supWheelJoints[2*i] = new BallJoint( bodies[i], supWheels[2*i], supWheels[2*i]->getPosition() );
-           supWheelJoints[2*i]->init( spaces[i], osgHandle, true, conf.supWheelRadius/2. );
+           supWheelJoints[2*i]->init( *Space, osgHandle, true, conf.supWheelRadius/2. );
            joints.push_back( supWheelJoints[2*i] );
            /** Creating Right Wheels */
            supWheels[2*i+1] = new Sphere( conf.supWheelRadius );
-           supWheels[2*i+1]->init( spaces[i], conf.supWheelMass, osgHandle );
+           supWheels[2*i+1]->init( *Space, conf.supWheelMass, osgHandle );
            Matrix bwPos = Matrix::translate( 0., -conf.bodyRadius+2.*conf.supWheelRadius, conf.supWheelAnchor )*
                           bodyPos;
            supWheels[2*i+1]->setPose( bwPos );
            objects.push_back( supWheels[2*i+1] );
            /** Creating Wheel Joints */
            supWheelJoints[2*i+1] = new BallJoint( bodies[i], supWheels[2*i+1], supWheels[2*i+1]->getPosition() );
-           supWheelJoints[2*i+1]->init( spaces[i], osgHandle, true, conf.supWheelRadius/2. );
+           supWheelJoints[2*i+1]->init( *Space, osgHandle, true, conf.supWheelRadius/2. );
            joints.push_back( supWheelJoints[2*i+1] );
         }
     }
@@ -309,8 +303,6 @@ namespace lpzrobots{
       case UniversalJ:
         for( int i=0; i<conf.carNumber-1; i++) {
             /** Creating joints between cars */
-            //Vec3 jointPos = Vec3(0., -conf.carDistance/2.-i*conf.carDistance*conf.bodyRadius, 0.)*pose;
-            //Matrix jP = Matrix::translate( Vec3(0., -conf.carDistance/2.-i*conf.carDistance*conf.bodyRadius, 0.)) *pose;
             Vec3 jointPos = Vec3(0., -(i+0.5)*conf.carDistance*conf.bodyRadius, conf.wheelRadius);
             Matrix jP = Matrix::translate( Vec3(0., -(i+0.5)*conf.carDistance*conf.bodyRadius, conf.wheelRadius));
             carJoints[i] = new UniversalJoint( bodies[i], bodies[i+1], jointPos, Axis(0,0,1)*jP, Axis(1,0,0)*jP );
@@ -324,10 +316,6 @@ namespace lpzrobots{
 
   }
 
-
-  //void CarChain::notifyOnChange(const paramkey& key) {
-  //  
-  //}
 
 
 

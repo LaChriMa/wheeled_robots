@@ -108,7 +108,7 @@ class ThisSim : public Simulation
 	  
       /*** CAR CHAIN ****/
       CarChainConf conf = CarChain::getDefaultConf();
-      conf.carNumber     = 4;
+      conf.carNumber     = 5;
       conf.supportWheels = false;
       conf.randomInitWP  = true;
       auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
