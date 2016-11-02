@@ -54,8 +54,8 @@ class ThisSim : public Simulation
 	
   public:
 	double friction;  /** velocity depending friction factor */
-	std::string env = "no";  /** "wall", "playground" or "no" */
-	bool randObstacles = false;
+	std::string env = "playground";  /** "wall", "playground" or "no" */
+	bool randObstacles = 1;
  	
     ThisSim() {
    	  addPaletteFile("colors/UrbanExtraColors.gpl");
@@ -110,7 +110,7 @@ class ThisSim : public Simulation
       CarChainConf conf = CarChain::getDefaultConf();
       conf.carNumber     = 5;
       conf.supportWheels = false;
-      conf.randomInitWP  = true;
+      conf.randomInitWP  = false;
       auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
    	  robot->place(Pos(0, 0, 0));
    	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);
@@ -121,7 +121,7 @@ class ThisSim : public Simulation
    	  global.agents.push_back(agent);
    	  global.configs.push_back(agent);
       TrackRobot* TrackOpt = new TrackRobot(false,false,false,true);
-      TrackOpt->conf.displayTraceDur = 1000;
+      TrackOpt->conf.displayTraceDur = 400;
       TrackOpt->conf.displayTraceThickness = 0.;
       agent->setTrackOptions( *TrackOpt );
 	  /*** END CAR CHAIN ****/
@@ -169,7 +169,7 @@ class ThisSim : public Simulation
 		//wallHandle.substance.toPlastic(0.8);
 		wallHandle.substance.toRubber(25);
         OctaPlayground* world = new OctaPlayground( wallHandle, osgHandle, 
-													Pos(20,0.2,0.5), 15, false);
+													Pos(10,0.2,0.5), 8, false);
         world->setPose( osg::Matrix::translate(0,0,0) );
         global.obstacles.push_back( world );
         setCameraHomePos(Pos(0.149249, 0.434834, 30.4279),  Pos(179.487, -89.6461, 0));
@@ -178,15 +178,15 @@ class ThisSim : public Simulation
 	
 		RandomObstaclesConf randConf = RandomObstacles::getDefaultConf();
     	randConf.pose = osg::Matrix::translate(0,0,0);
-    	randConf.area = Pos(15,15,2);
-    	randConf.minSize = Pos(4.,2.,1.);
-    	randConf.maxSize = Pos(4.,5.,1.);
-    	randConf.minDensity = 10;
-    	randConf.maxDensity = 10;
+    	randConf.area = Pos(8,8,2);
+    	randConf.minSize = Pos(0.1,0.1,0.8);
+    	randConf.maxSize = Pos(1.,1.,0.8);
+    	randConf.minDensity = 2;
+    	randConf.maxDensity = 5;
     	RandomObstacles* RandObstacle = new RandomObstacles(wallHandle, osgHandle, randConf);
     	/** Generation an placing Objects */
     	if(randObstacles == true){
-          int num_randObs = 4;
+          int num_randObs = 16;
           for (int i=0; i< num_randObs; i++){
              RandObstacle->spawn(RandomObstacles::Box, RandomObstacles::Foam);
              global.obstacles.push_back( RandObstacle );
