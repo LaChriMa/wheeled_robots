@@ -133,6 +133,8 @@ namespace lpzrobots{
 	 virtual int getMotorNumberIntern(){ return motorNo; };
 	 virtual void setMotorsIntern( const double* motors, int motornumber );
 
+     void velocityFriction(double friction);
+
 	private:
      int sensorNo;
      int motorNo;
@@ -140,6 +142,7 @@ namespace lpzrobots{
      std::vector<double> carAngleH;
      std::vector<double> carAngleV;
      std::vector<double> InitWPos;
+     std::vector<Cylinder*> bodies; /** to be able to add forces due to vel. depen. friction */
 
      std::vector<OdeHandle> spaces;
      double stepsize;

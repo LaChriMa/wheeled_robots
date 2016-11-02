@@ -168,6 +168,19 @@ namespace lpzrobots{
   }
 
 
+  void CarChain::velocityFriction(double friction) {
+    vector<Cylinder*>::iterator it;
+    for( it=bodies.begin(); it!=bodies.end(); ++it ) {
+      //dBodyID b = bodies[2]->getBody();
+      dBodyID b = (*it)->getBody();
+      const double* vel = dBodyGetAngularVel(b);
+      dBodyAddTorque( b, -vel[0]*friction,
+                         -vel[1]*friction,
+                         -vel[2]*friction );
+    }
+  }
+
+
   void CarChain::create(const Matrix& pose) {
 
     /** Creating new space for the chain with inside collision of all elements */
@@ -175,7 +188,7 @@ namespace lpzrobots{
     //odeHandle.createNewHashSpace(parentspace, false);
     spaces.resize( conf.carNumber );
 
-    vector<Cylinder*> bodies;        /** bodies for the cars */
+    //vector<Cylinder*> bodies;        /** bodies for the cars */
     bodies.resize( conf.carNumber );
     vector<Cylinder*> wheels;        /** wheels of the cars */
     wheels.resize( 2*conf.carNumber );

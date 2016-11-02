@@ -201,8 +201,10 @@ class ThisSim : public Simulation
 	  if(!pause)
 	  {
 		 OdeRobot* rob = globalData.agents[0]->getRobot();
-		 Pos vel = rob->getMainPrimitive()->getVel();
-		 rob->getMainPrimitive()->applyForce(-vel*friction);
+		 //Pos vel = rob->getMainPrimitive()->getVel();
+		 //rob->getMainPrimitive()->applyForce(-vel*friction);
+         dynamic_cast<CarChain*>(rob)->velocityFriction( friction );
+
 	  }
     }
 
