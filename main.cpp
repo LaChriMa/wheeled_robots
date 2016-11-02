@@ -54,8 +54,8 @@ class ThisSim : public Simulation
 	
   public:
 	double friction;  /** velocity depending friction factor */
-	std::string env = "playground";  /** "wall", "playground" or "no" */
-	bool randObstacles = 1;
+	std::string env = "no";  /** "wall", "playground" or "no" */
+	bool randObstacles = false;
  	
     ThisSim() {
    	  addPaletteFile("colors/UrbanExtraColors.gpl");
@@ -108,8 +108,8 @@ class ThisSim : public Simulation
 	  
       /*** CAR CHAIN ****/
       CarChainConf conf = CarChain::getDefaultConf();
-      conf.carNumber     = 5;
-      conf.supportWheels = false;
+      conf.carNumber     = 2;
+      conf.supportWheels = true;
       conf.randomInitWP  = false;
       auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
    	  robot->place(Pos(0, 0, 0));

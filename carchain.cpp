@@ -171,10 +171,9 @@ namespace lpzrobots{
   void CarChain::velocityFriction(double friction) {
     vector<Cylinder*>::iterator it;
     for( it=bodies.begin(); it!=bodies.end(); ++it ) {
-      //dBodyID b = bodies[2]->getBody();
       dBodyID b = (*it)->getBody();
-      const double* vel = dBodyGetAngularVel(b);
-      dBodyAddTorque( b, -vel[0]*friction,
+      const double* vel = dBodyGetLinearVel(b);
+      dBodyAddForce( b, -vel[0]*friction,
                          -vel[1]*friction,
                          -vel[2]*friction );
     }
