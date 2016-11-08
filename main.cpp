@@ -54,7 +54,7 @@ class ThisSim : public Simulation
 	
   public:
 	double friction;  /** velocity depending friction factor */
-	std::string env = "no";  /** "wall", "playground" or "no" */
+	std::string env = "wall";  /** "wall", "playground" or "no" */
 	bool randObstacles = false;
  	
     ThisSim() {
@@ -67,7 +67,7 @@ class ThisSim : public Simulation
 
     virtual void start(const OdeHandle& odeHandle, const OsgHandle& osgHandle, GlobalData& global)
     {
-	  /**** GLOBAL SETTINGS ****/
+	  /******** GLOBAL SETTINGS **********/
       setCameraHomePos(Pos(-14,14, 10),  Pos(-135, -24, 0));
       setCameraHomePos(Pos(-2.24309, 0.920369, 1.45178),  Pos(-113.025, -29.863, 0));
 	  setCameraMode( Follow );
@@ -77,7 +77,7 @@ class ThisSim : public Simulation
       global.odeConfig.setParam("gravity", -9.8);
 	  global.odeConfig.setParam("noise", 0);
 	  global.odeConfig.addParameterDef("friction", &friction, 0.1, "parameter for velocity depending friction");
-	  /**** END GLOBAL SETTINGS ****/
+	  /******* END GLOBAL SETTINGS *********/
 
 
 	  /**** WHEELED ROBOT ****/
@@ -108,13 +108,13 @@ class ThisSim : public Simulation
 	  
       /*** CAR CHAIN ****/
       CarChainConf conf = CarChain::getDefaultConf();
-      conf.carNumber     = 2;
+      conf.carNumber     = 1;
       conf.supportWheels = true;
       conf.randomInitWP  = false;
-      auto robot = new CarChain( odeHandle, osgHandle, conf, "Train");
+      auto robot = new CarChain( odeHandle, osgHandle, global.odeConfig, conf, "Train");
    	  robot->place(Pos(0, 0, 0));
    	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);
-   	  auto wiring = new One2OneWiring(new ColorUniformNoise(.1));
+   	  auto wiring = new One2OneWiring(new WhiteNormalNoise());
    	  auto agent = new OdeAgent(global);
    	  //auto agent = new OdeAgent( PlotOption(File) );
    	  agent->init(controller, robot, wiring);
@@ -153,13 +153,14 @@ class ThisSim : public Simulation
       /**** END FOUR WHEELED ROBOTS ****/
 
 
-	  /*** ENVIRONMENT ***/
+	  /********* ENVIRONMENT **********/
 	  if( env == "wall" )
 	  { 
 	    auto* box = new Box(15,0.3,1.5);
 	    box->init( odeHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
-	    //box->setSubstance(  Substance::getPlastic(0.8) );   //  Substance::getRubber(25) ); 
-	    box->setSubstance(  Substance::getRubber(25) ); 
+	    box->setSubstance(  Substance::getPlastic(0.8) );   //  roughness
+	    //box->setSubstance(  Substance::getRubber(25) ); // hardness 
+	    //box->setSubstance(  Substance::getFoam(1) );  // hardness (elasticity 0)
 	    box->setPosition( Pos(0,30,0) );
         setCameraHomePos(Pos(-0.0465025, -23.5645, 9.7256),  Pos(1.90295, -20.8458, 0));
 	  }
@@ -193,7 +194,7 @@ class ThisSim : public Simulation
           }
     	}
 	  }
-	  /*** End ENVIRONMENT ***/
+	  /********* End ENVIRONMENT *********/
     }
 
 

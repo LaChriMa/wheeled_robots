@@ -52,6 +52,7 @@ double CouplingRod::y(double x)
 void CouplingRod::stepNoLearning(const sensor* sensors, int number_sensors,
                                      motor* motors, int number_motors)
 {
+   N[1].gamma=N[0].gamma;
   //if( mode==0 ) /** transfer function with phase shift */
   //{ 
   //  for( int i=0; i<number_motors; i++) {
@@ -82,7 +83,9 @@ void CouplingRod::stepNoLearning(const sensor* sensors, int number_sensors,
     for( int i=0; i<number_motors; i++) 
     {
         N[i].x_act  =   cos(sensors[i]);
-        N[i].x     +=   N[i].gamma *( N[i].x_act - N[i].x ) *stepSize;
+        /* expressing gamma in unit of stepSize */
+        double new_gamma = N[i].gamma*1000*stepSize;
+        N[i].x     +=   new_gamma *( N[i].x_act - N[i].x ) *stepSize;
         N[i].y      =   y(N[i].x);
         N[i].x_tar  =   2. *N[i].y -1.;
         motors[i]   =   couplingRod( N[i].x_tar, sensors[i] );
@@ -126,7 +129,7 @@ void CouplingRod::init(int sensornumber, int motornumber, RandGen* randGen) {
   cout << "nNeurons =  nMotors: " << nMotors << "   and nSensors: "<< nSensors << "   and stepsize: " << stepSize << endl;
 
   for( int i=0; i<nMotors; i++) {
-     addParameterDef("n"+itos(i)+":gamma", &N[i].gamma, 20., "mode 4; decay constant of membrane potential");
+     if(i==0) addParameterDef("n"+itos(i)+":gamma", &N[i].gamma, 20., "mode 4; decay constant of membrane potential");
      N[i].x=0.;
      addInspectableValue("n"+itos(i)+":x_act", &N[i].x_act,  "actual position of left x between [-1,1]");
      addInspectableValue("n"+itos(i)+":x_tar", &N[i].x_tar,  "target position of left x between [-1,1]");

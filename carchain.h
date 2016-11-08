@@ -33,6 +33,7 @@
 #include <ode_robots/raysensorbank.h>
 #include <ode_robots/irsensor.h>
 
+#include <ode_robots/odeconfig.h>
 #include <vector>
 
 // Using name space lpzrobots
@@ -75,8 +76,9 @@ namespace lpzrobots{
       * Contrustructor
       */
      CarChain(const OdeHandle& odeHandle, const OsgHandle& osgHandle,
-                  const CarChainConf &conf = getDefaultConf(),
-                  const std::string& name = "CarChain");
+              const lpzrobots::OdeConfig& odeconfig,
+              const CarChainConf &conf = getDefaultConf(),
+              const std::string& name = "CarChain");
 
      /**
       * Default configuration of the robot
@@ -146,6 +148,7 @@ namespace lpzrobots{
 
      std::vector<OdeHandle> spaces;
      double stepsize;
+     const lpzrobots::OdeConfig& odeconfig;
   };
 
 

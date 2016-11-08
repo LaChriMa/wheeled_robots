@@ -34,8 +34,9 @@ using namespace std;
 namespace lpzrobots{
 
   CarChain::CarChain(const OdeHandle& odeHandle, const OsgHandle& osgHandle,
-                             const CarChainConf& conf, const string& name)
-    : OdeRobot(odeHandle, osgHandle, name, "2.0"), conf(conf) {
+                     const lpzrobots::OdeConfig& odeconfig,
+                     const CarChainConf& conf, const string& name)
+    : OdeRobot(odeHandle, osgHandle, name, "2.0"), odeconfig(odeconfig), conf(conf) {
    
     motorNo = 2*conf.carNumber;  /** each car has two wheels */
     /* Number of sensors: 
@@ -63,12 +64,14 @@ namespace lpzrobots{
       for( int i=0; i<motorNo; i++) 
       {
         InitWPos[i]= distribution(mt);
-        cout << "  " << InitWPos[i] << endl;
+        if(InitWPos[i]<M_PI) cout << "  " << InitWPos[i]/M_PI << " pi" ;
+        else cout << "  " << (InitWPos[i]-2*M_PI)/M_PI << " pi" ;
       }
+      cout << endl;
     }
     //TODO adaptation of the internal stepsize to the global
-    stepsize = 0.001;
-    addParameter("stepsizeRobot", &this->stepsize, "Internal stepsize of the robot");
+    stepsize = odeconfig.simStepSize*odeconfig.controlInterval;
+    //addParameter("stepsizeRobot", &this->stepsize, "Internal stepsize of the robot");
     addParameter("verticalDamping", &this->conf.spD1, "Damping of carjoints around z-axis");
     addParameter("verticalSpring", &this->conf.spC1, "Spring constant");
     if( !conf.supportWheels ) {
@@ -146,6 +149,7 @@ namespace lpzrobots{
       m++;
     }
     int n=0;
+    stepsize = odeconfig.simStepSize*odeconfig.controlInterval;
     for( int j=JPC*conf.carNumber; j<conf.carNumber*(JPC+1)-1; j++) 
     { /* spring force for vertical car angles */
       double angle_new = dynamic_cast<UniversalJoint*>(joints[j])->getPosition1();
