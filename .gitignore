@@ -15,3 +15,7 @@ motorTest*/*
 
 
 barrel_test_*/*
+
+single_car/*
+
+*.carchain
