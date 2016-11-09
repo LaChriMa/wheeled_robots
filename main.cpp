@@ -30,10 +30,13 @@
 #include "basiccontroller.h"
 #include <selforg/one2onewiring.h>
 
+// Environment:
 #include <ode_robots/playground.h>
 #include <ode_robots/octaplayground.h>
 #include <ode_robots/passivebox.h>
 #include <ode_robots/randomobstacles.h>
+#include <ode_robots/terrainground.h>
+
 
 #include <selforg/agent.h>
 
@@ -45,6 +48,9 @@
 #include <ode_robots/fourwheeled.h>
 
 
+
+
+
 #include <string>
 
 using namespace lpzrobots;
@@ -54,9 +60,12 @@ class ThisSim : public Simulation
 	
   public:
 	double friction;  /** velocity depending friction factor */
-	std::string env = "wall";  /** "wall", "playground" or "no" */
-	bool randObstacles = false;
- 	
+	double friction_first_body;  /** velocity depending friction factor */
+	std::string env = "no";  /** "wall", "playground", "halfpipe" or "no" */
+	bool randObstacles = true;
+ 	Pos initPos;
+
+
     ThisSim() {
    	  addPaletteFile("colors/UrbanExtraColors.gpl");
    	  addColorAliasFile("colors/UrbanColorSchema.txt");
@@ -68,16 +77,167 @@ class ThisSim : public Simulation
     virtual void start(const OdeHandle& odeHandle, const OsgHandle& osgHandle, GlobalData& global)
     {
 	  /******** GLOBAL SETTINGS **********/
-      setCameraHomePos(Pos(-14,14, 10),  Pos(-135, -24, 0));
-      setCameraHomePos(Pos(-2.24309, 0.920369, 1.45178),  Pos(-113.025, -29.863, 0));
-	  setCameraMode( Follow );
 
       global.odeConfig.setParam("simstepsize", 0.001);
       global.odeConfig.setParam("controlinterval", 1);
       global.odeConfig.setParam("gravity", -9.8);
 	  global.odeConfig.setParam("noise", 0);
 	  global.odeConfig.addParameterDef("friction", &friction, 0.1, "parameter for velocity depending friction");
+	  global.odeConfig.addParameterDef("friction_first_body", &friction_first_body, 0, " 0 or 1, if 0 friction is applied to all robots of the chain");
 	  /******* END GLOBAL SETTINGS *********/
+
+
+
+	  /********* ENVIRONMENT **********/
+	  if( env == "wall" )
+	  { 
+	    auto* wall1 = new Box(15,0.3,1.5);
+	    wall1->init( odeHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+	    wall1->setSubstance(  Substance::getPlastic(0.8) );   //  roughness
+	    //wall1->setSubstance(  Substance::getRubber(25) ); // hardness 
+	    //wall1->setSubstance(  Substance::getFoam(1) );  // hardness (elasticity 0)
+	    wall1->setPosition( Pos(0,30,0) );
+        auto* wall2 = new Box(15,0.3,1.5);
+	    wall2->init( odeHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+	    wall2->setSubstance(  Substance::getPlastic(0.8) );   //  roughness
+	    //wall2->setSubstance(  Substance::getRubber(25) ); // hardness 
+	    //wall2->setSubstance(  Substance::getFoam(1) );  // hardness (elasticity 0)
+	    wall2->setPosition( Pos(0,-10,0) );
+
+        initPos = Pos(0,0,0);
+        setCameraHomePos(Pos(0.00853173, -2.64447, 0.673756),  Pos(-0.251526, -8.93542, 0));
+        setCameraMode(Follow);
+	  }
+      if( env == "boxes" )
+      {  
+        /** läuft noch nicht */
+        //auto* box = new Box(0.2,0.2,0.2);
+	    //box->init( odeHandle, 2, osgHandle );
+	    //box->setSubstance(  Substance::getPlastic(0.8) );   //  roughness
+	    ////box->setSubstance(  Substance::getRubber(25) ); // hardness 
+	    ////box->setSubstance(  Substance::getFoam(1) );  // hardness (elasticity 0)
+	    //box->setPosition( Pos(0,10,0) );
+        //setCameraHomePos(Pos(0.0352671, -2.84712, 0.905692),  Pos(1.41342, -10.5767, 0));
+      }
+      if( env == "halfpipe" )
+      {
+        TerrainGround* pipe = new TerrainGround( odeHandle, osgHandle, "terrains/dip128.ppm",
+                                                 "terrains/dip128_texture.ppm", 10, 1000, 1,
+                                                 OSGHeightField::Red);
+        pipe->setPose( osg::Matrix::translate(0,0,0) );
+        global.obstacles.push_back( pipe );
+        initPos = Pos(0,0,0.1);
+        setCameraHomePos (Pos(2.90049, 11.4115, 2.62329),  Pos(169.839, -11.4999, 0));
+        setCameraMode(Follow);
+      }
+      if( env == "slope" )
+      {
+        double slope = 0.3;
+        auto* box = new Box(30,100,3);
+        //box->setTexture("Images/whiteground.jpg");
+        box->setTexture("Images/wood.jpg");
+        box->init( odeHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+        box->setSubstance(Substance::getPlastic(0.8));
+        box->setPose(osg::Matrix::rotate(slope,0.,1.,0.)); //member function of Box class
+        auto* box_right = new Box(30,100,3);
+        //box_right->setTexture("Images/whiteground.jpg");
+        box_right->setTexture("Images/wood.jpg");
+        box_right->init( odeHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+        box_right->setSubstance(Substance::getPlastic(0.8));
+        box_right->setPose(osg::Matrix::rotate(slope,0.,-1.,0.)
+                          *osg::Matrix::translate(40,0,0)); //member function of Box class
+        auto* box_front = new Box(70,30,3);
+        //box_front->setTexture("Images/whiteground.jpg");
+        box_front->setTexture("Images/wood.jpg");
+        box_front->init( odeHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+        box_front->setSubstance(Substance::getPlastic(0.8));
+        box_front->setPose(osg::Matrix::rotate(slope,1.,0.,0.)
+                          *osg::Matrix::translate(20,38,0)); //member function of Box class
+        auto* box_back = new Box(70,30,3);
+        //box_back->setTexture("Images/whiteground.jpg");
+        box_back->setTexture("Images/wood.jpg");
+        box_back->init( odeHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+        box_back->setSubstance(Substance::getPlastic(0.8));
+        box_back->setPose(osg::Matrix::rotate(slope,-1.,0.,0.)
+                          *osg::Matrix::translate(20,-38,0)); //member function of Box class
+        initPos = Pos(0,0,2.5);    
+        //setCameraHomePos(Pos(1.53111, -6.17297, 2.54418),  Pos(5.12451, -3.32855, 0));
+        //setCameraHomePos(Pos(0.776101, -3.97541, 2.27557),  Pos(2.31992, -6.84192, 0));
+        setCameraHomePos(Pos(-5.51694, -11.5603, 6.56456),  Pos(-22.7518, -13.0505, 0));
+        setCameraMode(Follow);
+       }
+	  if( env == "playground" )
+	  { 
+		OdeHandle wallHandle = odeHandle;
+		//wallHandle.substance.toPlastic(0.8);
+		wallHandle.substance.toRubber(25);
+        OctaPlayground* world = new OctaPlayground( wallHandle, osgHandle, 
+													Pos(10,0.2,0.5), 8, false);
+        world->setPose( osg::Matrix::translate(0,0,0) );
+        global.obstacles.push_back( world );
+        initPos = Pos(0,0,0);
+        //setCameraHomePos(Pos(0.149249, 0.434834, 30.4279),  Pos(179.487, -89.6461, 0));
+        //setCameraHomePos(Pos(6.80232, 46.9342, 34.5286),  Pos(173.018, -40.2009, 0));
+        setCameraHomePos(Pos(-0.671052, 18.1675, 22.2259),  Pos(-179.845, -53.4133, 0));
+        setCameraMode( Static );
+	
+		RandomObstaclesConf randConf = RandomObstacles::getDefaultConf();
+    	randConf.pose = osg::Matrix::translate(0,0,0);
+    	//randConf.area = Pos(8,8,2);
+    	//randConf.minSize = Pos(0.1,0.1,0.8);
+    	//randConf.maxSize = Pos(1.,1.,0.8);
+    	//randConf.minDensity = 2;
+    	//randConf.maxDensity = 5;
+    	randConf.area = Pos(5,5,2);
+    	randConf.minSize = Pos(0.1,0.1,0.4);
+    	randConf.maxSize = Pos(0.7,0.7,0.4);
+    	randConf.minDensity = 2;
+    	randConf.maxDensity = 5;
+    	RandomObstacles* RandObstacle = new RandomObstacles(wallHandle, osgHandle, randConf);
+    	/** Generation an placing Objects */
+    	if(randObstacles == true){
+          int num_randObs = 16;
+          for (int i=0; i< num_randObs; i++){
+             RandObstacle->spawn(RandomObstacles::Box, RandomObstacles::Foam);
+             global.obstacles.push_back( RandObstacle );
+          }
+    	}
+        setCameraHomePos (Pos(0.501969, 1.09391, 0.340535),  Pos(157.028, -10.8405, 0));
+	    setCameraMode( Follow );
+	  }
+      if( env == "no" )
+      {
+        setCameraHomePos(Pos(-2.24309, 0.920369, 1.45178),  Pos(-113.025, -29.863, 0));
+        setCameraHomePos (Pos(0.501969, 1.09391, 0.340535),  Pos(157.028, -10.8405, 0));
+	    setCameraMode( Follow );
+      }
+	  /********* End ENVIRONMENT *********/
+  
+
+
+
+      /********* CAR CHAIN ***********/
+      CarChainConf conf = CarChain::getDefaultConf();
+      conf.carNumber     = 5;
+      (conf.carNumber == 1 ) ? conf.supportWheels = true : conf.supportWheels = false;
+      conf.randomInitWP  = false;
+      auto robot = new CarChain( odeHandle, osgHandle, global.odeConfig, conf, "Train");
+   	  //robot->place(Pos(0, 0, 0));
+   	  //robot->place(Pos(0, 0, 2));
+      robot->place( initPos );
+   	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);
+   	  auto wiring = new One2OneWiring(new WhiteNormalNoise());
+   	  auto agent = new OdeAgent(global);
+   	  //auto agent = new OdeAgent( PlotOption(File) );
+   	  agent->init(controller, robot, wiring);
+   	  global.agents.push_back(agent);
+   	  global.configs.push_back(agent);
+      TrackRobot* TrackOpt = new TrackRobot(false,false,false,true);
+      TrackOpt->conf.displayTraceDur = 400;
+      TrackOpt->conf.displayTraceThickness = 0.01;
+      agent->setTrackOptions( *TrackOpt );
+	  /*********** END CAR CHAIN **********/
+
 
 
 	  /**** WHEELED ROBOT ****/
@@ -105,27 +265,7 @@ class ThisSim : public Simulation
    	  //global.agents.push_back(agent);
    	  //global.configs.push_back(agent);
 	  /**** END WHEELED ROBOT ****/
-	  
-      /*** CAR CHAIN ****/
-      CarChainConf conf = CarChain::getDefaultConf();
-      conf.carNumber     = 1;
-      conf.supportWheels = true;
-      conf.randomInitWP  = false;
-      auto robot = new CarChain( odeHandle, osgHandle, global.odeConfig, conf, "Train");
-   	  robot->place(Pos(0, 0, 0));
-   	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);
-   	  auto wiring = new One2OneWiring(new WhiteNormalNoise());
-   	  auto agent = new OdeAgent(global);
-   	  //auto agent = new OdeAgent( PlotOption(File) );
-   	  agent->init(controller, robot, wiring);
-   	  global.agents.push_back(agent);
-   	  global.configs.push_back(agent);
-      TrackRobot* TrackOpt = new TrackRobot(false,false,false,true);
-      TrackOpt->conf.displayTraceDur = 400;
-      TrackOpt->conf.displayTraceThickness = 0.;
-      agent->setTrackOptions( *TrackOpt );
-	  /*** END CAR CHAIN ****/
-
+	
 
       /**** FOUR WHEELED ROBOTS ****/
       //auto N4robot = new Nimm4Angle( odeHandle, osgHandle, "Nimm4Angle");
@@ -153,48 +293,6 @@ class ThisSim : public Simulation
       /**** END FOUR WHEELED ROBOTS ****/
 
 
-	  /********* ENVIRONMENT **********/
-	  if( env == "wall" )
-	  { 
-	    auto* box = new Box(15,0.3,1.5);
-	    box->init( odeHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
-	    box->setSubstance(  Substance::getPlastic(0.8) );   //  roughness
-	    //box->setSubstance(  Substance::getRubber(25) ); // hardness 
-	    //box->setSubstance(  Substance::getFoam(1) );  // hardness (elasticity 0)
-	    box->setPosition( Pos(0,30,0) );
-        setCameraHomePos(Pos(-0.0465025, -23.5645, 9.7256),  Pos(1.90295, -20.8458, 0));
-	  }
-	  if( env == "playground" )
-	  { 
-		OdeHandle wallHandle = odeHandle;
-		//wallHandle.substance.toPlastic(0.8);
-		wallHandle.substance.toRubber(25);
-        OctaPlayground* world = new OctaPlayground( wallHandle, osgHandle, 
-													Pos(10,0.2,0.5), 8, false);
-        world->setPose( osg::Matrix::translate(0,0,0) );
-        global.obstacles.push_back( world );
-        setCameraHomePos(Pos(0.149249, 0.434834, 30.4279),  Pos(179.487, -89.6461, 0));
-        setCameraHomePos(Pos(6.80232, 46.9342, 34.5286),  Pos(173.018, -40.2009, 0));
-        setCameraMode( Static );
-	
-		RandomObstaclesConf randConf = RandomObstacles::getDefaultConf();
-    	randConf.pose = osg::Matrix::translate(0,0,0);
-    	randConf.area = Pos(8,8,2);
-    	randConf.minSize = Pos(0.1,0.1,0.8);
-    	randConf.maxSize = Pos(1.,1.,0.8);
-    	randConf.minDensity = 2;
-    	randConf.maxDensity = 5;
-    	RandomObstacles* RandObstacle = new RandomObstacles(wallHandle, osgHandle, randConf);
-    	/** Generation an placing Objects */
-    	if(randObstacles == true){
-          int num_randObs = 16;
-          for (int i=0; i< num_randObs; i++){
-             RandObstacle->spawn(RandomObstacles::Box, RandomObstacles::Foam);
-             global.obstacles.push_back( RandObstacle );
-          }
-    	}
-	  }
-	  /********* End ENVIRONMENT *********/
     }
 
 
@@ -202,10 +300,13 @@ class ThisSim : public Simulation
 	  if(!pause)
 	  {
 		 OdeRobot* rob = globalData.agents[0]->getRobot();
-		 //Pos vel = rob->getMainPrimitive()->getVel();
-		 //rob->getMainPrimitive()->applyForce(-vel*friction);
-         dynamic_cast<CarChain*>(rob)->velocityFriction( friction );
-
+         if( friction_first_body ) {
+		   Pos vel = rob->getMainPrimitive()->getVel();
+		   rob->getMainPrimitive()->applyForce(-vel*friction);
+         }
+         else {
+            dynamic_cast<CarChain*>(rob)->velocityFriction( friction );
+         }
 	  }
     }
 
@@ -220,8 +321,8 @@ class ThisSim : public Simulation
 		  case 'J': dBodyAddForce( rob->getMainPrimitive()->getBody(), -200, 0, 0); break;
 		  case 'k': dBodyAddForce( rob->getMainPrimitive()->getBody(), 0, 200, 0); break;
 		  case 'K': dBodyAddForce( rob->getMainPrimitive()->getBody(), 0, -200, 0); break;
-		  case 'l': dBodyAddTorque( rob->getMainPrimitive()->getBody(), 0, 0, 250); break;
-		  case 'L': dBodyAddTorque( rob->getMainPrimitive()->getBody(), 0, 0, -250); break;
+		  case 'l': dBodyAddTorque( rob->getMainPrimitive()->getBody(), 0, 0, 5); break;
+		  case 'L': dBodyAddTorque( rob->getMainPrimitive()->getBody(), 0, 0, -5); break;
 	 	}
 	  }
       return false;
