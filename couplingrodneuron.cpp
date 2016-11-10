@@ -31,81 +31,48 @@ CouplingRod::CouplingRod(const std::string& name, const lpzrobots::OdeConfig& od
   : AbstractController(name, "1.0"), odeconfig(odeconfig)  { }
 
 
+void CouplingRod::step(const sensor* sensors, int sensornumber,
+                           motor* motors, int motornumber) {
+  double old_stepSize = stepSize;
+  stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
+  if( old_stepSize!=stepSize ) cout << " Controller internal stepsize = " << stepSize << endl;
+  // generating motor values
+  stepNoLearning(sensors,sensornumber, motors, motornumber);
+
+}
+
+
+void CouplingRod::stepNoLearning(const sensor* sensors, int number_sensors,
+                                     motor* motors, int number_motors)
+{
+   for( int i=0; i<number_motors; i++) 
+   {    
+       /** all gammas are the same value */
+       N[i].gamma=N[0].gamma;
+       /** adapting gamma to stepSize diffrent form 0.001 */
+       double new_gamma = N[i].gamma*1000*stepSize;
+
+       N[i].x_act  =   cos(sensors[i]);
+       N[i].x     +=   new_gamma *( N[i].x_act - N[i].x ) *stepSize;
+       N[i].y      =   y(N[i].x);
+       N[i].x_tar  =   2. *N[i].y -1.;
+       motors[i]   =   couplingRod( N[i].x_tar, sensors[i] );
+   }
+  time += stepSize;
+}
+
+
 double CouplingRod::couplingRod(double x_tar, double phi) 
 { // defines transmission of power to the wheels
   return k * sin(phi) * ( x_tar - cos(phi) );
 }
 
-//double CouplingRod::y(double phi, double deltaPhi)
-//{ // sigmoidal funcion,  where x=cos(phi-dphi)
-//  double x = cos(phi-deltaPhi);
-//  return 1./( 1.+exp( a*(b-x) ) );
-//}
 
 double CouplingRod::y(double x)
 { // sigmoidal funcion  
   return 1./( 1.+exp( a*(b-x) ) );
 }
 
-
-
-void CouplingRod::stepNoLearning(const sensor* sensors, int number_sensors,
-                                     motor* motors, int number_motors)
-{
-   N[1].gamma=N[0].gamma;
-  //if( mode==0 ) /** transfer function with phase shift */
-  //{ 
-  //  for( int i=0; i<number_motors; i++) {
-  //      N[i].y = y( sensors[i], delPhi );
-  //      N[i].x_act = cos(sensors[i]);
-  //      N[i].x_tar = 2.*N[i].y-1.;
-  //      motors[i] = couplingRod( N[i].x_tar, sensors[i] );
-  //   }
-  //}
-  //else if( mode==1 ) /** simple sinus, no sensorimotor loop */
-  //{
-  //  for( int i=0; i<number_motors; i++) {
-  //      N[i].x_act = cos(sensors[i]);
-  //      N[i].x_tar = 0.8 *sin(2*M_PI*frequ*time);
-
-  //      motors[i] = couplingRod( N[i].x_tar, sensors[i] );
-  //  }
-  //}
-  //else if( mode==2 ) /** simple torque to the wheels */
-  //{
-  //  motors[0] = 1.;
-  //  motors[1] = 0;
-  //  motors[2] = 1.;
-  //  motors[3] = 1.;
-  //}
-  //else if( mode==4 ) /** sensorimotor loop with membrane potential */
-  //{  
-    for( int i=0; i<number_motors; i++) 
-    {
-        N[i].x_act  =   cos(sensors[i]);
-        /* expressing gamma in unit of stepSize */
-        double new_gamma = N[i].gamma*1000*stepSize;
-        N[i].x     +=   new_gamma *( N[i].x_act - N[i].x ) *stepSize;
-        N[i].y      =   y(N[i].x);
-        N[i].x_tar  =   2. *N[i].y -1.;
-        motors[i]   =   couplingRod( N[i].x_tar, sensors[i] );
-    }
- // }
-  
-  time += stepSize;
-}
-
-
-void CouplingRod::step(const sensor* sensors, int sensornumber,
-                           motor* motors, int motornumber) {
-  // counter for time
-  double old_stepSize = stepSize;
-  stepSize = odeconfig.simStepSize*odeconfig.controlInterval;
-  if( old_stepSize != stepSize) cout << " Controller internal stepsize = " << stepSize << endl;
-  // generating motor values
-  stepNoLearning(sensors,sensornumber, motors, motornumber);
-
-}
 
 
 void CouplingRod::init(int sensornumber, int motornumber, RandGen* randGen) {
@@ -129,7 +96,8 @@ void CouplingRod::init(int sensornumber, int motornumber, RandGen* randGen) {
   cout << "nNeurons =  nMotors: " << nMotors << "   and nSensors: "<< nSensors << "   and stepsize: " << stepSize << endl;
 
   for( int i=0; i<nMotors; i++) {
-     if(i==0) addParameterDef("n"+itos(i)+":gamma", &N[i].gamma, 20., "mode 4; decay constant of membrane potential");
+     //if(i==0) addParameterDef("n"+itos(i)+":gamma", &N[i].gamma, 20., "mode 4; decay constant of membrane potential");
+     if(i==0) addParameterDef("Gamma", &N[i].gamma, 20., "mode 4; decay constant of membrane potential");
      N[i].x=0.;
      addInspectableValue("n"+itos(i)+":x_act", &N[i].x_act,  "actual position of left x between [-1,1]");
      addInspectableValue("n"+itos(i)+":x_tar", &N[i].x_tar,  "target position of left x between [-1,1]");

@@ -39,7 +39,7 @@ namespace lpzrobots{
     : OdeRobot(odeHandle, osgHandle, name, "2.0"), odeconfig(odeconfig), conf(conf) {
    
     motorNo = 2*conf.carNumber;  /** each car has two wheels */
-    /* Number of sensors: 
+    /** Number of sensors: 
      * Angle for each wheel                 ~ motorNo
      * opt. Angular velocity                ~ motorNo           if speedSensors
      * Angles between the cars horizontal   ~ carNumber-1
@@ -49,12 +49,12 @@ namespace lpzrobots{
 
     cout << "########" << endl << "Variables of the CarChain: " << endl;
     cout << "motorNo: " << motorNo << "   and sensorNo: " << sensorNo << endl;
-    /* storage for orientations of the cars, if all 0 they are on a straight line */
+    /** storage for orientations of the cars, if all 0 they are on a straight line */
     carAngleV.resize(conf.carNumber-1); 
     carAngleV.assign(conf.carNumber-1, 0);
     carAngleH.resize(conf.carNumber-1); 
     carAngleH.assign(conf.carNumber-1, 0);
-    /* Wheel positions at the beginning */
+    /** Wheel positions at the beginning */
     InitWPos.resize(motorNo);
     InitWPos.assign(motorNo, 0.);
     if(conf.randomInitWP) {
@@ -69,10 +69,8 @@ namespace lpzrobots{
       }
       cout << endl;
     }
-    //TODO adaptation of the internal stepsize to the global
     stepsize = odeconfig.simStepSize*odeconfig.controlInterval;
-    //addParameter("stepsizeRobot", &this->stepsize, "Internal stepsize of the robot");
-    addParameter("verticalDamping", &this->conf.spD1, "Damping of carjoints around z-axis");
+    addParameter("verticalDamping", &this->conf.spD1, "Damping of carjoints around Z-AXIS");
     addParameter("verticalSpring", &this->conf.spC1, "Spring constant");
     if( !conf.supportWheels ) {
       addParameter("horizontalDamping", &this->conf.spD2, "Damping of carjoints on xy-plane");
@@ -172,6 +170,7 @@ namespace lpzrobots{
   }
 
 
+  /** called to add a force in opposite direction to velocity vector of EVERY car body */ 
   void CarChain::velocityFriction(double friction) {
     vector<Cylinder*>::iterator it;
     for( it=bodies.begin(); it!=bodies.end(); ++it ) {
