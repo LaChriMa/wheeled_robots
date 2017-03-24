@@ -52,8 +52,8 @@ class ThisSim : public Simulation
   public:
 	double friction;  /** velocity depending friction factor */
 	bool friction_first_body;  /** velocity depending friction factor */
-	std::string env = "halfpipe";  /** "slope", "wall", "playground", "halfpipe" or "no" */
-	bool randObstacles = true;
+	std::string env = "no";  /** "slope", "wall", "playground", "halfpipe" or "no" */
+	bool randObstacles = false;
  	Pos initPos;
 
 
@@ -203,13 +203,14 @@ class ThisSim : public Simulation
 
       /********* CAR CHAIN *****************/
       CarChainConf conf = CarChain::getDefaultConf();
-      conf.carNumber     = 5;
+      conf.carNumber     = 1;
       conf.randomInitWP  = false;
       /**if only 1 car install support wheels*/
       (conf.carNumber == 1 ) ? conf.supportWheels = true : conf.supportWheels = false;
-      auto robot = new CarChain( odeHandle, osgHandle, global.odeConfig, conf, "Train");
+      auto robot = new CarChain( odeHandle, osgHandle, global.odeConfig, conf, "Buchse");
       robot->place( initPos );
-   	  auto controller = new CouplingRod("Coupling_Rod", global.odeConfig);
+   	  //auto controller = new CouplingRod("Sigmoidal", global.odeConfig);
+   	  auto controller = new CouplingRod("Sinus", global.odeConfig);
    	  auto wiring = new One2OneWiring(new WhiteNormalNoise());
    	  auto agent = new OdeAgent(global);
    	  //auto agent = new OdeAgent( PlotOption(File) );
