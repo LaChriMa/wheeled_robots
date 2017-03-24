@@ -64,7 +64,7 @@ public:
     conf.wheelHeight        = 0.01;
     conf.wheelMass          = 0.1;
     conf.randomInitWP       = true; //M_PI/4.0;
-    conf.supportWheels      = (carNumber == 1) ? false:true;
+    conf.supportWheels      = (conf.carNumber == 1) ? false:true;
     conf.supWheelMass       = 0.00001;
     conf.supWheelRadius     = conf.wheelRadius/4.;
     conf.supWheelAnchor     = -conf.wheelRadius+conf.supWheelRadius; /* y of the anchor */

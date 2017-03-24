@@ -138,7 +138,7 @@ public:
       setCameraHomePos(Pos(20.9623, 0.306804, 11.942),  Pos(90.5044, -31.6968, 0));
       setCameraMode( Static );
       //setCameraHomePos (Pos(0.501969, 1.09391, 0.340535),  Pos(157.028, -10.8405, 0));
-      /setCameraMode( Follow );
+      //setCameraMode( Follow );
       	
       RandomObstaclesConf randConf = RandomObstacles::getDefaultConf();
       randConf.pose = osg::Matrix::translate(0,0,0);
