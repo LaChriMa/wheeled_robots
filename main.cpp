@@ -29,7 +29,7 @@ class ThisSim : public Simulation
 public:
   double friction;  /** velocity depending friction factor */
   bool friction_first_body;  /** velocity depending friction factor */
-  std::string env = "no";  /** "slope", "wall", "playground", "halfpipe" or "no" */
+  std::string env = "slope";  /** "slope", "wall", "playground", "halfpipe" or "no" */
   bool randObstacles = false;
   Pos initPos;
   
@@ -47,7 +47,7 @@ public:
     global.odeConfig.setParam("controlinterval", 1);
     global.odeConfig.setParam("gravity", -9.8);
     global.odeConfig.setParam("noise", 0);
-    global.odeConfig.addParameterDef("friction", &friction, 0.1, "parameter for velocity depending friction");
+    global.odeConfig.addParameterDef("friction", &friction, 0.5, "parameter for velocity depending friction");
     global.odeConfig.addParameterDef("friction_first_body", &friction_first_body, false, " 0 or 1, if 0 friction is applied to all robots of the chain");
     /******* END GLOBAL SETTINGS *********/
   
@@ -120,7 +120,8 @@ public:
       box_back->setPose(osg::Matrix::rotate(slope,-1.,0.,0.)
                         *osg::Matrix::translate(20,-38,0)); 
   
-      initPos = Pos(0,0,2.5);    
+      //initPos = Pos(0,0,2.5);    
+      initPos = Pos(10,0,0);    
       setCameraHomePos(Pos(-5.51694, -11.5603, 6.56456),  Pos(-22.7518, -13.0505, 0));
       setCameraMode( Follow );
     }
@@ -139,7 +140,10 @@ public:
       setCameraMode( Static );
       //setCameraHomePos (Pos(0.501969, 1.09391, 0.340535),  Pos(157.028, -10.8405, 0));
       //setCameraMode( Follow );
-      	
+    }
+    if( randObstacles ) {  	
+      OdeHandle obstHandle = odeHandle;
+      obstHandle.substance.toRubber(25);
       RandomObstaclesConf randConf = RandomObstacles::getDefaultConf();
       randConf.pose = osg::Matrix::translate(0,0,0);
       randConf.area = Pos(6,6,0.5);
@@ -152,7 +156,7 @@ public:
       //randConf.maxSize = Pos(0.7,0.7,0.4);
       //randConf.minDensity = 2;
       //randConf.maxDensity = 5;
-      RandomObstacles* RandObstacle = new RandomObstacles(wallHandle, osgHandle, randConf);
+      RandomObstacles* RandObstacle = new RandomObstacles(obstHandle, osgHandle, randConf);
       if(randObstacles == true){  /** Generation and placing Objects */
         int num_randObs = 16;
         for (int i=0; i< num_randObs; i++){
@@ -173,7 +177,7 @@ public:
   
     /********* CAR CHAIN *****************/
     WheeledRobConf conf = WheeledRob::getDefaultConf();
-    conf.carNumber     = 1;
+    conf.carNumber     = 5;
     conf.randomInitWP  = false;
     /** if only 1 car install support wheels */
     (conf.carNumber==1) ? conf.supportWheels=true : conf.supportWheels=false;
@@ -188,8 +192,8 @@ public:
     global.configs.push_back(agent);
     /** track options */
     TrackRobot* TrackOpt = new TrackRobot(false,false,false,true);
-    TrackOpt->conf.displayTraceDur = 100;
-    TrackOpt->conf.displayTraceThickness = 0.;
+    TrackOpt->conf.displayTraceDur = 20;
+    TrackOpt->conf.displayTraceThickness = 0.01; // 0.01 or 0.
     agent->setTrackOptions( *TrackOpt );
     /*********** END CAR CHAIN **********/
   }

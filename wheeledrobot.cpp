@@ -45,12 +45,17 @@ WheeledRob::WheeledRob(const OdeHandle& odeHandle, const OsgHandle& osgHandle,
 
   /** stepsize */
   stepsize = odeconfig.simStepSize*odeconfig.controlInterval;
-  addParameter("verticalDamping", &this->conf.spD1, "Damping of carjoints around Z-AXIS");
-  addParameter("verticalSpring", &this->conf.spC1, "Spring constant");
-  if( !conf.supportWheels ) {
-    addParameter("horizontalDamping", &this->conf.spD2, "Damping of carjoints on xy-plane");
-    addParameter("horizontalSpring", &this->conf.spC2, "Spring constant");
-  }
+  //TODO: damping constant of car joints the same for both angles
+  //addParameter("verticalDamping", &this->conf.spD1, "Damping of carjoints around Z-AXIS");
+  //addParameter("verticalSpring", &this->conf.spC1, "Spring constant");
+  //if( !conf.supportWheels ) {
+  //  addParameter("horizontalDamping", &this->conf.spD2, "Damping of carjoints on xy-plane");
+  //  addParameter("horizontalSpring", &this->conf.spC2, "Spring constant");
+  //}
+  addParameter("damping", &this->conf.spD1, "Damping of car joints");
+  addParameter("spring", &this->conf.spC1, "Spring constant of car joints");
+
+
 }
 
 
@@ -137,7 +142,9 @@ void WheeledRob::setMotorsIntern( const double* motors, int motornumber ) {
     for( int j=JPC*conf.carNumber; j<conf.carNumber*(JPC+1)-1; j++) 
     { /* spring force for horizontal car angles*/
       double angle_new = dynamic_cast<UniversalJoint*>(joints[j])->getPosition2();
-      double springForce = -conf.spC2*angle_new - conf.spD2*(angle_new-carAngleH[n])/stepsize;
+      //TODO: damping constant of car joints the same for both angles
+      double springForce = -conf.spC1*angle_new - conf.spD1*(angle_new-carAngleH[n])/stepsize;
+      //double springForce = -conf.spC2*angle_new - conf.spD2*(angle_new-carAngleH[n])/stepsize;
       dynamic_cast<UniversalJoint*>(joints[j])->addForce2(springForce);
       carAngleH[n] = angle_new;
       n++;
