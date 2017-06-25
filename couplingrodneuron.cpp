@@ -25,9 +25,9 @@ void CouplingRod::init(int sensornumber, int motornumber, RandGen* randGen)
   addParameterDef("a",    &a,       2, "mode 0: slope of sigmoidal function");
   addParameterDef("b",    &b,       0, "mode 0: threshold of sigmoidal function");
   addParameterDef("k",    &k,       2, "couping rod: spring constant");
-  addParameterDef("mode", &mode,    1, " sigmoidal (0) or sinus (1) "); 
+  addParameterDef("mode", &mode,    0, " sigmoidal (0) or sinus (1) "); 
   addParameterDef("A",    &A,     0.8, "mode 1: amplitude of sinus target"); 
-  addParameterDef("f",    &frequ, 0.5, "mode 1; rotational frequency in [1/s] of the driving force");
+  addParameterDef("f",    &frequ,   3, "mode 1; rotational frequency in [1/s] of the driving force");
   
   N.resize( nMotors ); 
   cout << "########" << endl << "Controller internal variables: " << endl;
@@ -37,7 +37,7 @@ void CouplingRod::init(int sensornumber, int motornumber, RandGen* randGen)
      N[i].x=0.;
      N[i].y=0.;
      /** Parameter Gamma is the same for all neurons */
-     if(i==0) addParameterDef("Gamma", &N[i].gamma, 20., "mode 0; decay constant of membrane potential");
+     if(i==0) addParameterDef("Gamma", &N[i].gamma, 60., "mode 0; decay constant of membrane potential");
      //addParameterDef("n"+itos(i)+":gamma", &N[i].gamma, 20., "mode 4; decay constant of membrane potential");
      addInspectableValue("n"+itos(i)+":x_act", &N[i].x_act, "actual position of left x between [-1,1]");
      addInspectableValue("n"+itos(i)+":x_tar", &N[i].x_tar, "target position of left x between [-1,1]");
