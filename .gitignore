@@ -1,25 +1,17 @@
-ode.msg
-
-buch*
-
+#### files:
+*.agent
+*.o
+Makefile.depend
+start
+.history
 guilogger.cfg
 
-*.o
-*.swp
 
-start
-
-Makefile.depend
-
-motorTest*/*
-
-.history
+#### folders:
+agents/*
+trajector*/*
+ode.msg
+old*
+car*
 
 
-vid*/*
-
-barrel_test_*/*
-
-single_car/*
-
-*.carchain

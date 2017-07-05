@@ -29,9 +29,10 @@ class ThisSim : public Simulation
 public:
   double friction;  /** velocity depending friction factor */
   bool friction_first_body;  /** velocity depending friction factor */
-  std::string env = "slope";  /** "slope", "wall", "playground", "halfpipe" or "no" */
-  bool randObstacles = false;
+  std::string env = "playground";  /** "slope", "wall", "playground", "halfpipe" or "no" */
+  bool randObstacles = true;
   Pos initPos;
+  int carNum = 5;
   
   ThisSim() {
     addPaletteFile("colors/UrbanExtraColors.gpl");
@@ -47,7 +48,7 @@ public:
     global.odeConfig.setParam("controlinterval", 1);
     global.odeConfig.setParam("gravity", -9.8);
     global.odeConfig.setParam("noise", 0);
-    global.odeConfig.addParameterDef("friction", &friction, 0.5, "parameter for velocity depending friction");
+    global.odeConfig.addParameterDef("friction", &friction, 0.1, "parameter for velocity depending friction");
     global.odeConfig.addParameterDef("friction_first_body", &friction_first_body, false, " 0 or 1, if 0 friction is applied to all robots of the chain");
     /******* END GLOBAL SETTINGS *********/
   
@@ -93,6 +94,36 @@ public:
       setCameraHomePos (Pos(2.90049, 11.4115, 2.62329),  Pos(169.839, -11.4999, 0));
       setCameraMode( Follow );
     }
+    if( env == "slo" )
+    {
+      double dist = 10;
+      double slope=1.2;
+      double hight = 5.;
+      double width = dist*1.4;
+      OdeHandle wallHandle = odeHandle;
+      wallHandle.substance.toPlastic(0.8);
+
+      auto* wall1 = new Box(width,0.3,hight);
+      wall1->init( wallHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+      wall1->setSubstance(  Substance::getPlastic(0.8) );
+      wall1->setPose( osg::Matrix::rotate(-slope,1.,0.,0.) * osg::Matrix::translate(0,dist/2.,0) );
+      auto* wall2 = new Box(width,0.3,hight);
+      wall2->init( wallHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+      wall2->setSubstance(  Substance::getPlastic(0.8) );
+      wall2->setPose( osg::Matrix::rotate(slope,1.,0.,0.) * osg::Matrix::translate(0,-dist/2.,0) );
+      auto* wall3 = new Box(0.3,width,hight);
+      wall3->init( wallHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+      wall3->setSubstance(  Substance::getPlastic(0.8) );
+      wall3->setPose( osg::Matrix::rotate(slope,0.,1.,0.) * osg::Matrix::translate(dist/2.,0.,0) );
+      auto* wall4 = new Box(0.3,width,hight);
+      wall4->init( wallHandle, 0, osgHandle, Primitive::Geom | Primitive::Draw );
+      wall4->setSubstance(  Substance::getPlastic(0.8) );
+      wall4->setPose( osg::Matrix::rotate(-slope,0.,1.,0.) * osg::Matrix::translate(-dist/2.,0.,0) );
+
+      initPos = Pos(0,0,0);
+      setCameraHomePos(Pos(-0.680767, -6.35182, 14.4558),  Pos(-2.99261, -66.8559, 0));
+      setCameraMode( Static );
+    }
     if( env == "slope" )
     {  /** 4 flat surfaces forming kind of a funnel */
       double slope = 0.3;
@@ -121,7 +152,7 @@ public:
                         *osg::Matrix::translate(20,-38,0)); 
   
       //initPos = Pos(0,0,2.5);    
-      initPos = Pos(10,0,0);    
+      initPos = Pos(-10,0,0);    
       setCameraHomePos(Pos(-5.51694, -11.5603, 6.56456),  Pos(-22.7518, -13.0505, 0));
       setCameraMode( Follow );
     }
@@ -131,7 +162,7 @@ public:
       //wallHandle.substance.toPlastic(0.8);
       wallHandle.substance.toRubber(25);
       OctaPlayground* world = new OctaPlayground( wallHandle, osgHandle, 
-      									Pos(10,0.2,0.5), 8, false);
+      									Pos(10,0.2,0.5), 6, false);
       world->setPose( osg::Matrix::translate(0,0,0) );
       global.obstacles.push_back( world );
       initPos = Pos(0,0,0);
@@ -177,7 +208,7 @@ public:
   
     /********* CAR CHAIN *****************/
     WheeledRobConf conf = WheeledRob::getDefaultConf();
-    conf.carNumber     = 5;
+    conf.carNumber     = carNum;
     conf.randomInitWP  = false;
     /** if only 1 car install support wheels */
     (conf.carNumber==1) ? conf.supportWheels=true : conf.supportWheels=false;
@@ -192,8 +223,8 @@ public:
     global.configs.push_back(agent);
     /** track options */
     TrackRobot* TrackOpt = new TrackRobot(false,false,false,true);
-    TrackOpt->conf.displayTraceDur = 20;
-    TrackOpt->conf.displayTraceThickness = 0.01; // 0.01 or 0.
+    TrackOpt->conf.displayTraceDur = 15;
+    TrackOpt->conf.displayTraceThickness = 0.0; // 0.01 or 0.
     agent->setTrackOptions( *TrackOpt );
     /*********** END CAR CHAIN **********/
   }
